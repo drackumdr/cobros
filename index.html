@@ -1752,7 +1752,6 @@
         const fs = localStorage.getItem('sec_fontSize');
         if (fs) { fontSize = parseInt(fs); changeFontSize(0) }
       } catch (e) { clientes = [] }
-      if (!clientes.length) seedDemo();
       renderHeaderBrand();
     }
 
