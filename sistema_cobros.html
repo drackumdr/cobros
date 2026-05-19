@@ -1,0 +1,3299 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Cobros — Detektor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    /* ───────────── DESIGN TOKENS ───────────── */
+    :root {
+      --bg: #f5f3ef;
+      --bg2: #ede9e3;
+      --bg3: #e3ddd5;
+      --surface: #ffffff;
+      --border: #cbc5bc;
+      --border2: #b5afa6;
+      --text: #1a1714;
+      --text2: #4a4540;
+      --text3: #7a736b;
+      --blue: #1a4fa0;
+      --blue-lt: #d6e4f7;
+      --green: #1e6b2e;
+      --green-lt: #d4edda;
+      --red: #9b1c1c;
+      --red-lt: #fde8e8;
+      --amber: #8a4a00;
+      --amber-lt: #fef0d6;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0, 0, 0, .10);
+      --shadow-md: 0 4px 24px rgba(0, 0, 0, .15);
+
+      /* Accesibilidad: tamaños base más grandes */
+      --fs-xs: 13px;
+      --fs-sm: 15px;
+      --fs-base: 16px;
+      --fs-md: 18px;
+      --fs-lg: 22px;
+      --fs-xl: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      font-size: var(--fs-base)
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.55;
+    }
+
+    /* ───────────── LAYOUT ───────────── */
+    .app {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 1.25rem 1.25rem 4rem
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      background: var(--text);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.5rem;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .header-logo {
+      width: 44px;
+      height: 44px;
+      background: #e63535;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .header-logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .header-title {
+      font-size: var(--fs-md);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2
+    }
+
+    .header-sub {
+      font-size: var(--fs-xs);
+      color: #aaa
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    /* ───────────── TABS ───────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg3);
+      border-radius: var(--radius);
+      padding: 5px;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 110px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      color: var(--text2);
+      border-radius: 7px;
+      text-align: center;
+      transition: all .18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      border: none;
+      background: none;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .tab:hover:not(.active) {
+      background: var(--bg2);
+      color: var(--text)
+    }
+
+    /* ───────────── SECTIONS ───────────── */
+    .section {
+      display: none
+    }
+
+    .section.active {
+      display: block
+    }
+
+    .sec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sec-title {
+      font-size: var(--fs-md);
+      font-weight: 600
+    }
+
+    /* ───────────── CARDS (dashboard) ───────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      border: 1.5px solid var(--border);
+    }
+
+    .card-label {
+      font-size: var(--fs-sm);
+      color: var(--text2);
+      margin-bottom: 6px;
+      font-weight: 500
+    }
+
+    .card-value {
+      font-size: var(--fs-xl);
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .card-value.danger {
+      color: var(--red)
+    }
+
+    .card-value.success {
+      color: var(--green)
+    }
+
+    .card-value.warn {
+      color: var(--amber)
+    }
+
+    .card-value.blue {
+      color: var(--blue)
+    }
+
+    /* ───────────── TABLE ───────────── */
+    .tbl-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-sm);
+      table-layout: fixed;
+      background: var(--surface)
+    }
+
+    th {
+      padding: 12px 14px;
+      font-weight: 600;
+      font-size: var(--fs-xs);
+      color: var(--text2);
+      background: var(--bg2);
+      border-bottom: 2px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 10px;
+      height: 100%;
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      z-index: 2;
+    }
+
+    .col-resizer::after {
+      content: "";
+      position: absolute;
+      top: 20%;
+      bottom: 20%;
+      left: 3px;
+      width: 2px;
+      background: transparent;
+      border-radius: 2px;
+      transition: background .15s;
+    }
+
+    th:hover .col-resizer::after,
+    body.resizing-cols .col-resizer::after {
+      background: var(--border2);
+    }
+
+    body.resizing-cols {
+      cursor: col-resize;
+      user-select: none;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      user-select: none
+    }
+
+    th.sortable:hover {
+      background: var(--bg3);
+      color: var(--text)
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1.5px solid var(--border);
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tr:hover td {
+      background: #faf8f5
+    }
+
+    tr.row-vencido td {
+      background: #fff5f5
+    }
+
+    tr.row-vencido:hover td {
+      background: #fee2e2
+    }
+
+    tr.row-hoy td {
+      background: #fffbeb
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        padding: .75rem .5rem 3rem
+      }
+
+      .header {
+        border-radius: 0;
+        padding: 1rem
+      }
+
+      th,
+      td {
+        padding: 10px 8px
+      }
+
+      #prox-table th:nth-child(3),
+      #prox-table td:nth-child(3),
+      #prox-table th:nth-child(4),
+      #prox-table td:nth-child(4),
+      #prox-table th:nth-child(7),
+      #prox-table td:nth-child(7),
+      #pend-table th:nth-child(3),
+      #pend-table td:nth-child(3),
+      #pend-table th:nth-child(4),
+      #pend-table td:nth-child(4),
+      #cli-table th:nth-child(3),
+      #cli-table td:nth-child(3),
+      #cli-table th:nth-child(4),
+      #cli-table td:nth-child(4),
+      #cli-table th:nth-child(5),
+      #cli-table td:nth-child(5) {
+        display: none
+      }
+
+      #cli-table td:last-child .btn-xs,
+      #pend-table td:last-child .btn-xs,
+      #prox-table td:last-child .btn-xs {
+        font-size: 0;
+        gap: 0;
+        padding: 7px 8px
+      }
+
+      #cli-table td:last-child .btn-xs i,
+      #pend-table td:last-child .btn-xs i,
+      #prox-table td:last-child .btn-xs i {
+        font-size: 16px
+      }
+    }
+
+    @media (max-width: 620px) {
+      .tabs {
+        margin-left: -.5rem;
+        margin-right: -.5rem;
+        border-radius: 0
+      }
+
+      .tab {
+        min-width: 92px;
+        padding: 9px 10px
+      }
+
+      .search-bar {
+        width: 100%
+      }
+
+      .search-wrap {
+        flex: 1;
+        min-width: 180px
+      }
+
+      #prox-table th:nth-child(6),
+      #prox-table td:nth-child(6),
+      #pend-table th:nth-child(6),
+      #pend-table td:nth-child(6),
+      #pend-table th:nth-child(7),
+      #pend-table td:nth-child(7),
+      #cli-table th:nth-child(7),
+      #cli-table td:nth-child(7),
+      #cli-table th:nth-child(8),
+      #cli-table td:nth-child(8) {
+        display: none
+      }
+
+      .acct-badge {
+        font-size: 11px;
+        padding: 3px 7px
+      }
+    }
+
+    @media (max-width: 760px) {
+      #pend-table .tbl-wrap,
+      #cli-table .tbl-wrap {
+        overflow: visible;
+        border: none;
+        border-radius: 0;
+        background: transparent
+      }
+
+      #pend-table table,
+      #pend-table thead,
+      #pend-table tbody,
+      #pend-table tr,
+      #cli-table table,
+      #cli-table thead,
+      #cli-table tbody,
+      #cli-table tr {
+        display: block;
+        width: 100%
+      }
+
+      #pend-table thead,
+      #cli-table thead {
+        display: none
+      }
+
+      #pend-table .col-resizer,
+      #cli-table .col-resizer {
+        display: none
+      }
+
+      #pend-table tbody,
+      #cli-table tbody {
+        display: grid;
+        gap: 10px
+      }
+
+      #pend-table tr,
+      #cli-table tr {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 8px 10px;
+        box-shadow: var(--shadow)
+      }
+
+      #pend-table tr.row-vencido,
+      #cli-table tr.row-vencido {
+        background: #fff5f5;
+        border-color: #f8c0c0
+      }
+
+      #pend-table tr.row-hoy,
+      #cli-table tr.row-hoy {
+        background: #fffbeb;
+        border-color: #f5d8a0
+      }
+
+      #pend-table td,
+      #cli-table td {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--border);
+        background: transparent !important;
+        border-radius: 0 !important;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal
+      }
+
+      #pend-table td:last-child,
+      #cli-table td:last-child {
+        border-bottom: none;
+        padding-top: 10px
+      }
+
+      #pend-table td::before,
+      #cli-table td::before {
+        flex: 0 0 auto;
+        color: var(--text3);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em
+      }
+
+      #pend-table td:nth-child(1)::before,
+      #cli-table td:nth-child(1)::before { content: "Cuenta" }
+      #pend-table td:nth-child(2)::before { content: "Cliente" }
+      #pend-table td:nth-child(3)::before,
+      #cli-table td:nth-child(3)::before { content: "Teléfono" }
+      #pend-table td:nth-child(4)::before,
+      #cli-table td:nth-child(4)::before { content: "Servicio" }
+      #pend-table td:nth-child(5)::before,
+      #cli-table td:nth-child(6)::before { content: "Monto" }
+      #pend-table td:nth-child(6)::before,
+      #cli-table td:nth-child(7)::before { content: "Fecha" }
+      #pend-table td:nth-child(7)::before,
+      #cli-table td:nth-child(8)::before { content: "Estado" }
+      #cli-table td:nth-child(2)::before { content: "Nombre" }
+      #cli-table td:nth-child(5)::before { content: "Frecuencia" }
+
+      #pend-table td:last-child::before,
+      #cli-table td:last-child::before {
+        content: "";
+        display: none
+      }
+
+      #pend-table td:last-child > div,
+      #cli-table td:last-child > div {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap
+      }
+
+      #pend-table td:last-child .btn-xs,
+      #cli-table td:last-child .btn-xs {
+        flex: 0 0 auto;
+        font-size: 0;
+        gap: 0;
+        padding: 8px 10px
+      }
+
+      #pend-table td:last-child .btn-xs i,
+      #cli-table td:last-child .btn-xs i {
+        font-size: 17px
+      }
+    }
+
+    /* ───────────── BADGES ───────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .b-danger {
+      background: var(--red-lt);
+      color: var(--red);
+      border: 1px solid #f8c0c0
+    }
+
+    .b-warn {
+      background: var(--amber-lt);
+      color: var(--amber);
+      border: 1px solid #f5d8a0
+    }
+
+    .b-ok {
+      background: var(--green-lt);
+      color: var(--green);
+      border: 1px solid #b0ddb8
+    }
+
+    .b-info {
+      background: var(--blue-lt);
+      color: var(--blue);
+      border: 1px solid #aecef0
+    }
+
+    .b-gray {
+      background: var(--bg3);
+      color: var(--text2);
+      border: 1px solid var(--border)
+    }
+
+    /* ───────────── BUTTONS ───────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text);
+      transition: all .15s;
+      font-family: 'IBM Plex Sans', sans-serif;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .btn:hover {
+      background: var(--bg2);
+      border-color: var(--border2)
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 2px
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue)
+    }
+
+    .btn-primary:hover {
+      background: #0f3b7a;
+      border-color: #0f3b7a
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green)
+    }
+
+    .btn-success:hover {
+      background: #155221;
+      border-color: #155221
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red)
+    }
+
+    .btn-danger:hover {
+      background: #6f1212;
+      border-color: #6f1212
+    }
+
+    .btn-sm {
+      padding: 7px 13px;
+      font-size: var(--fs-xs)
+    }
+
+    .btn-xs {
+      padding: 5px 10px;
+      font-size: var(--fs-xs)
+    }
+
+    /* ───────────── FORMS ───────────── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+      min-width: 120px
+    }
+
+    .field label {
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    .field label .req {
+      color: var(--red)
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: var(--fs-base);
+      width: 100%;
+      font-family: 'IBM Plex Sans', sans-serif;
+      transition: border-color .15s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26, 79, 160, .15);
+    }
+
+    input[readonly] {
+      background: var(--bg2);
+      color: var(--text2);
+      cursor: default;
+    }
+
+    .search-bar {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: var(--fs-sm);
+      width: 240px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .search-wrap {
+      position: relative
+    }
+
+    .search-wrap .ti-search {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .search-wrap .search-bar {
+      padding-left: 38px
+    }
+
+    /* ───────────── MODAL ───────────── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 200;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      width: 620px;
+      max-width: 100%;
+      border: 2px solid var(--border);
+      box-shadow: var(--shadow-md);
+      margin: auto;
+    }
+
+    .modal h3 {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      margin-bottom: 1.5rem
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 2px solid var(--border);
+    }
+
+    .section-title {
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 1.25rem 0 .75rem;
+    }
+
+    .divider {
+      border: none;
+      border-top: 2px solid var(--border);
+      margin: 1.25rem 0
+    }
+
+    /* ───────────── ACCOUNT BADGE ───────────── */
+    .acct-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      background: var(--blue-lt);
+      color: var(--blue);
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: .04em;
+    }
+
+    /* ───────────── ALERT ───────────── */
+    .alert-box {
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: var(--fs-base);
+      margin-bottom: 1rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .a-danger {
+      background: var(--red-lt);
+      color: var(--red);
+      border: 2px solid #f8c0c0
+    }
+
+    /* ───────────── CALENDAR ───────────── */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 1rem
+    }
+
+    .cal-head {
+      text-align: center;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--text2);
+      padding: 6px 2px
+    }
+
+    .cal-day {
+      min-height: 70px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      padding: 5px 7px;
+      background: var(--surface);
+      font-size: var(--fs-xs);
+    }
+
+    .cal-day.today {
+      border-color: var(--blue);
+      background: var(--blue-lt)
+    }
+
+    .cal-day.empty {
+      background: transparent;
+      border-color: transparent
+    }
+
+    .cal-day-num {
+      font-weight: 700;
+      color: var(--text2);
+      margin-bottom: 3px;
+      font-size: var(--fs-sm)
+    }
+
+    .cal-dot {
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: visible;
+      padding: 2px 5px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .cal-dot-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .cal-dot::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      background: var(--text);
+      color: #fff;
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s;
+      z-index: 50;
+    }
+
+    .cal-dot:hover::after {
+      opacity: 1
+    }
+
+    /* ───────────── HISTORIAL ───────────── */
+    .hist-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1.5px solid var(--border);
+      font-size: var(--fs-base);
+    }
+
+    .hist-row:last-child {
+      border-bottom: none
+    }
+
+    /* ───────────── RECIBO ───────────── */
+    .receipt-preview-wrapper {
+      display: flex;
+      justify-content: center;
+      background: var(--bg3);
+      padding: 1.5rem 1rem;
+      border-radius: var(--radius);
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1.5px solid var(--border);
+    }
+
+    .ticket-body {
+      width: 72mm;
+      max-width: 100%;
+      background: #ffffff;
+      color: #000000;
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      border-radius: 4px;
+      box-sizing: border-box;
+      text-align: left;
+    }
+
+    .ticket-body img {
+      max-width: 100%;
+      height: auto;
+      display: inline-block;
+    }
+
+    .ticket-body table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .ticket-body th, .ticket-body td {
+      padding: 4px 0;
+      border: none;
+      background: transparent !important;
+      color: #000000 !important;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .ticket-body tr {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+
+    .ticket-divider-dashed {
+      border-top: 1px dashed #000000;
+      margin: 8px 0;
+      height: 0;
+    }
+
+    .ticket-divider-dotted {
+      border-top: 1px dotted #000000;
+      margin: 6px 0;
+      height: 0;
+    }
+
+    /* ───────────── TOAST ───────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform .3s ease;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    /* ───────────── PRINT ───────────── */
+    @media print {
+      body {
+        background: #fff;
+        font-size: 14pt
+      }
+
+      .no-print {
+        display: none !important
+      }
+
+      .print-only {
+        display: block !important
+      }
+
+      .modal-bg {
+        position: static;
+        background: none;
+        padding: 0
+      }
+
+      .modal {
+        box-shadow: none;
+        border: none;
+        width: 100%
+      }
+    }
+
+    .print-only {
+      display: none
+    }
+
+    /* ───────────── EMPTY STATE ───────────── */
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text3);
+      font-size: var(--fs-base);
+    }
+
+    .empty i {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 1rem;
+      opacity: .35
+    }
+
+    .empty p {
+      font-size: var(--fs-base);
+      color: var(--text3);
+      margin-bottom: 1.25rem
+    }
+
+    /* ───────────── FONT SIZE CONTROL ───────────── */
+    .font-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    .font-ctrl span {
+      font-size: 13px;
+      color: #ccc;
+      font-weight: 500
+    }
+
+    .font-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255, 255, 255, .25);
+      background: rgba(255, 255, 255, .1);
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background .15s;
+    }
+
+    .font-btn:hover {
+      background: rgba(255, 255, 255, .25)
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="toast">✓ Guardado</div>
+
+  <div class="app">
+
+    <!-- ── HEADER ── -->
+    <div class="header no-print">
+      <div class="header-brand" id="main-header-brand">
+        <div class="header-logo"><i class="ti ti-shield-lock"></i></div>
+        <div>
+          <div class="header-title">Sistema de Cobros</div>
+          <div class="header-sub">Detektor</div>
+          <div id="header-date" style="font-size:var(--fs-xs);color:#888;margin-top:2px"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <!-- Control de tamaño de letra -->
+        <div id="last-saved" style="font-size:11px;color:#999;white-space:nowrap"></div>
+        <div class="font-ctrl" title="Tamaño de letra">
+          <span>Letra</span>
+          <button class="font-btn" onclick="changeFontSize(-1)" aria-label="Reducir texto">−</button>
+          <button class="font-btn" onclick="changeFontSize(1)" aria-label="Aumentar texto">A+</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm" onclick="openEmpresaModal()"><i class="ti ti-building-store"></i> Configurar Empresa</button>
+          <button class="btn btn-sm" onclick="exportCSV()"><i class="ti ti-download"></i> Exportar</button>
+          <button class="btn btn-sm" onclick="document.getElementById('imp').click()"><i class="ti ti-upload"></i>
+            Importar</button>
+          <input type="file" id="imp" accept=".csv" style="display:none" onchange="importCSV(event)">
+          <button class="btn btn-sm btn-primary" onclick="openEditor(null)"><i class="ti ti-plus"></i> Nuevo
+            cliente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TABS ── -->
+    <div class="tabs no-print" role="tablist">
+      <button class="tab active" onclick="showTab('dashboard')" role="tab"><i class="ti ti-layout-dashboard"></i>
+        Resumen</button>
+      <button class="tab" onclick="showTab('pendientes')" role="tab">
+        <i class="ti ti-bell"></i> Pendientes
+        <span id="badge-pend"
+          style="background:var(--red);color:#fff;border-radius:20px;font-size:11px;padding:1px 7px;font-weight:700;display:none"></span>
+      </button>
+      <button class="tab" onclick="showTab('clientes')" role="tab"><i class="ti ti-users"></i> Clientes</button>
+      <button class="tab" onclick="showTab('calendario')" role="tab"><i class="ti ti-calendar"></i> Calendario</button>
+      <button class="tab" onclick="showTab('ingresos')" role="tab"><i class="ti ti-report-money"></i> Ingresos</button>
+    </div>
+
+    <!-- ── DASHBOARD ── -->
+    <div id="tab-dashboard" class="section active">
+      <div class="cards" id="stats-cards"></div>
+      <div id="venc-alert"></div>
+      <div class="section-title">Próximos cobros — 7 días</div>
+      <div id="prox-table"></div>
+      <div class="section-title" style="margin-top:1.5rem">Proyección de cobros — próximos 6 meses</div>
+      <div id="chart-mensual"
+        style="display:flex;gap:8px;align-items:flex-end;padding:1rem;background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border)">
+      </div>
+    </div>
+
+    <!-- ── PENDIENTES ── -->
+    <div id="tab-pendientes" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Cobros pendientes</div>
+        <span id="pend-count" style="font-size:var(--fs-sm);color:var(--text3);font-weight:500"></span>
+        <div class="row" style="gap:8px">
+          <div class="search-wrap">
+            <i class="ti ti-search"></i>
+            <input class="search-bar" type="search" placeholder="Buscar nombre, cuenta…" aria-label="Buscar pendientes"
+              oninput="debouncedPend(this.value)" id="sp">
+          </div>
+          <select id="fp" onchange="pagePend=1;renderPend()" style="width:160px;font-size:var(--fs-sm)"
+            aria-label="Filtrar por período">
+            <option value="">Todos</option>
+            <option value="v">Vencidos</option>
+            <option value="h">Hoy</option>
+            <option value="s">Esta semana</option>
+            <option value="m">Este mes</option>
+          </select>
+        </div>
+      </div>
+      <div id="pend-table"></div>
+    </div>
+
+    <!-- ── CLIENTES ── -->
+    <div id="tab-clientes" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Clientes registrados</div>
+        <span id="cli-count" style="font-size:var(--fs-sm);color:var(--text3);font-weight:500"></span>
+        <div class="row" style="gap:8px">
+          <div class="search-wrap">
+            <i class="ti ti-search"></i>
+            <input class="search-bar" type="search" id="sc" placeholder="Nombre, cuenta, teléfono…"
+              aria-label="Buscar clientes" oninput="debouncedClientes(this.value)">
+          </div>
+          <select id="fc" onchange="pageClientes=1;renderClientes()" style="width:160px;font-size:var(--fs-sm)"
+            aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="activo">✅ Activos</option>
+            <option value="suspendido">⏸ Suspendidos</option>
+            <option value="cancelado">❌ Cancelados</option>
+          </select>
+        </div>
+      </div>
+      <div id="cli-table"></div>
+    </div>
+
+    <!-- ── CALENDARIO ── -->
+    <div id="tab-calendario" class="section">
+      <div class="row" style="margin-bottom:1rem;gap:12px;align-items:center">
+        <button class="btn btn-sm" onclick="chMonth(-1)" aria-label="Mes anterior"><i
+            class="ti ti-chevron-left"></i></button>
+        <div id="cal-title" style="font-size:var(--fs-md);font-weight:700;min-width:180px;text-align:center"></div>
+        <button class="btn btn-sm" onclick="chMonth(1)" aria-label="Mes siguiente"><i
+            class="ti ti-chevron-right"></i></button>
+      </div>
+      <div id="cal"></div>
+    </div>
+
+    <!-- ── INGRESOS ── -->
+    <div id="tab-ingresos" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Reporte Global de Ingresos</div>
+        <div class="row" style="gap:12px; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label for="fi-desde" style="margin: 0; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600;">Desde:</label>
+            <input type="date" id="fi-desde" style="font-size: var(--fs-sm); padding: 5px 10px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--surface); color: var(--text);" onchange="renderIngresos()">
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label for="fi-hasta" style="margin: 0; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600;">Hasta:</label>
+            <input type="date" id="fi-hasta" style="font-size: var(--fs-sm); padding: 5px 10px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--surface); color: var(--text);" onchange="renderIngresos()">
+          </div>
+          <button class="btn btn-sm" onclick="exportIngresosCSV()"><i class="ti ti-download"></i> Exportar Reporte</button>
+        </div>
+      </div>
+      
+      <div style="background: var(--surface); padding: 16px; border-radius: var(--radius); border: 1.5px solid var(--border); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 13px; color: var(--text2); font-weight: 600;">Total Recaudado en Periodo:</div>
+          <div id="ingresos-total-monto" style="font-size: 24px; font-weight: 700; color: var(--green); margin-top: 4px;">$0.00 MXN</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 13px; color: var(--text2); font-weight: 600;">Pagos Registrados:</div>
+          <div id="ingresos-total-pagos" style="font-size: 20px; font-weight: 700; color: var(--blue); margin-top: 4px;">0</div>
+        </div>
+      </div>
+      
+      <div id="ingresos-table"></div>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- ════════════════════════════════════════
+     MODAL: EDITOR DE CLIENTE
+════════════════════════════════════════ -->
+  <div id="modal-bg" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-labelledby="modal-title">
+    <div class="modal">
+      <h3 id="modal-title">Nuevo cliente</h3>
+
+      <div class="section-title">Información de cuenta</div>
+      <div class="row" style="margin-bottom:12px">
+        <div class="field" style="max-width:180px">
+          <label for="f-cuenta">N° de cuenta</label>
+          <input id="f-cuenta" placeholder="Ej. SEC-1001" aria-describedby="cuenta-help">
+          <span id="cuenta-help" style="font-size:12px;color:var(--text3)">Dejar vacío para auto-generar, o escribir manualmente</span>
+        </div>
+        <div class="field">
+          <label for="f-estado">Estado del contrato</label>
+          <select id="f-estado" aria-label="Estado del contrato">
+            <option value="activo">✅ Activo</option>
+            <option value="suspendido">⏸ Suspendido</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Datos del cliente</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="row">
+          <div class="field">
+            <label for="f-nombre">Nombre completo <span class="req">*</span></label>
+            <input id="f-nombre" placeholder="Ej. Juan Pérez García" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="f-tel">Teléfono</label>
+            <input id="f-tel" placeholder="614-000-0000" type="tel" autocomplete="tel">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="f-contacto-nombre">Nombre del contacto</label>
+            <input id="f-contacto-nombre" placeholder="Ej. Juan Pérez (Gerente)">
+          </div>
+          <div class="field">
+            <label for="f-contacto-cel">Celular del contacto (WhatsApp)</label>
+            <input id="f-contacto-cel" placeholder="614-000-0000" type="tel">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="f-email">Correo electrónico</label>
+            <input id="f-email" type="email" placeholder="correo@ejemplo.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="f-rfc">RFC / Razón social</label>
+            <input id="f-rfc" placeholder="PEPJ800101XXX">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-dir">Dirección</label>
+          <input id="f-dir" placeholder="Calle, número, colonia, ciudad" autocomplete="street-address">
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Servicio y cobro</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="field" style="margin-bottom: 4px;">
+          <label for="f-serv-predef" style="font-weight: 600;">Cargar servicio desde catálogo (Autocompletar)</label>
+          <select id="f-serv-predef" onchange="cargarServicioPredefinido()" style="width: 100%; font-size: var(--fs-sm); background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 6px 10px;">
+            <option value="">-- Seleccionar de catálogo para autocompletar --</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="f-serv">Tipo de servicio</label>
+            <input id="f-serv" placeholder="Alarma, CCTV, GPS…">
+          </div>
+          <div class="field">
+            <label for="f-desc">Descripción / equipo</label>
+            <input id="f-desc" placeholder="Panel DSC, 2 cámaras…">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" style="max-width:170px">
+            <label for="f-freq">Frecuencia <span class="req">*</span></label>
+            <select id="f-freq">
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="semestral">Semestral</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+          <div class="field" style="max-width:150px">
+            <label for="f-monto">Monto (MXN) <span class="req">*</span></label>
+            <input id="f-monto" type="number" placeholder="200" min="0" oninput="actualizarPreviewMonto()">
+          </div>
+          <div class="field" style="max-width:150px">
+            <label for="f-desc2">Descuento (%)</label>
+            <input id="f-desc2" type="number" placeholder="0" min="0" max="100" oninput="actualizarPreviewMonto()">
+          </div>
+        </div>
+        <div id="monto-preview"
+          style="padding:10px 14px;background:var(--green-lt);border:1.5px solid var(--border);border-radius:var(--radius);font-weight:700;color:var(--green);font-size:var(--fs-md);display:none">
+          Total a cobrar: <span id="monto-preview-val"></span>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="f-inicio">Fecha inicio contrato</label>
+            <input id="f-inicio" type="date">
+          </div>
+          <div class="field">
+            <label for="f-prox">Próxima fecha de cobro <span class="req">*</span></label>
+            <input id="f-prox" type="date">
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="section-title">Notas adicionales</div>
+      <textarea id="f-notas" rows="3" placeholder="Observaciones, método de pago, acceso al inmueble…"
+        aria-label="Notas adicionales"></textarea>
+
+      <div id="historial-section" style="display:none">
+        <hr class="divider">
+        <div class="section-title">Historial de pagos</div>
+        <div id="hist-list"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="btn-del" onclick="deleteFromModal()"
+          style="display:none;margin-right:auto">
+          <i class="ti ti-trash"></i> Eliminar cliente
+        </button>
+        <button class="btn btn-sm" id="btn-print-client" onclick="imprimirFichaCliente()" style="display:none">
+          <i class="ti ti-printer"></i> Imprimir ficha
+        </button>
+        <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveCliente()">
+          <i class="ti ti-device-floppy"></i> Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+     MODAL: RECIBO
+════════════════════════════════════════ -->
+  <div id="modal-recibo" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-label="Recibo de pago">
+    <div class="modal" style="width:450px; max-width: 100%;">
+      <h3 style="margin-bottom: 1.25rem;">Recibo de pago</h3>
+      <div class="receipt-preview-wrapper" role="region" aria-label="Vista previa del recibo">
+        <div class="ticket-body" id="recibo-txt"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm"
+          onclick="document.getElementById('modal-recibo').style.display='none'">Cerrar</button>
+        <button class="btn btn-sm" style="background:#25d366;color:#fff;border-color:#25d366" onclick="enviarReciboPorWhatsApp()" title="Enviar PDF por WhatsApp">
+          <i class="ti ti-brand-whatsapp"></i> Compartir WhatsApp
+        </button>
+        <button class="btn btn-success btn-sm" onclick="imprimirRecibo()">
+          <i class="ti ti-printer"></i> Imprimir recibo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+     MODAL: CONFIGURAR EMPRESA
+════════════════════════════════════════ -->
+  <div id="modal-empresa" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-labelledby="empresa-title">
+    <div class="modal" style="width:480px; max-width:100%">
+      <h3 id="empresa-title" style="margin-bottom: 1.25rem;">Configurar Datos de la Empresa</h3>
+      
+      <div style="display:flex; flex-direction:column; gap:14px">
+        <div class="field">
+          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Logotipo de la empresa</label>
+          <div style="display: flex; gap: 16px; align-items: center; background: var(--bg2); padding: 12px; border-radius: var(--radius); border: 1.5px solid var(--border);">
+            <div id="empresa-logo-preview" style="width: 70px; height: 70px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+              <i class="ti ti-photo" style="font-size: 28px; color: var(--text3);"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button class="btn btn-sm" onclick="document.getElementById('f-empresa-logo').click()" style="width: fit-content;">
+                <i class="ti ti-upload"></i> Subir logotipo
+              </button>
+              <input type="file" id="f-empresa-logo" accept="image/*" style="display:none" onchange="handleEmpresaLogoUpload(event)">
+              <button class="btn btn-sm btn-danger" id="btn-delete-logo" onclick="deleteEmpresaLogo()" style="width: fit-content; display: none;">
+                <i class="ti ti-trash"></i> Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="field">
+          <label for="f-empresa-nombre">Nombre comercial de la empresa <span class="req">*</span></label>
+          <input id="f-empresa-nombre" placeholder="Ej. Detektor Seguridad">
+        </div>
+        
+        <div class="field">
+          <label for="f-empresa-rfc">RFC de la empresa</label>
+          <input id="f-empresa-rfc" placeholder="Ej. DET123456XX0">
+        </div>
+        
+        <div class="field">
+          <label for="f-empresa-dir">Dirección comercial</label>
+          <input id="f-empresa-dir" placeholder="Ej. Av. De las Industrias #123, Chihuahua">
+        </div>
+
+        <!-- Copias de Seguridad (JSON) -->
+        <div style="border-top: 1.5px dashed var(--border); margin-top: 15px; padding-top: 15px;">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text);"><i class="ti ti-database"></i> Copia de Seguridad Completa</div>
+          <div style="font-size: 11px; color: var(--text2); margin-bottom: 10px; line-height: 1.4;">
+            Descarga o restaura toda la base de datos (clientes, pagos, secuencias y datos de empresa) en un solo archivo JSON.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-xs" onclick="exportJSONBackup()" style="flex: 1; padding: 6px; font-size: 11px;">
+              <i class="ti ti-download"></i> Respaldar (JSON)
+            </button>
+            <button class="btn btn-xs" onclick="document.getElementById('f-import-json').click()" style="flex: 1; padding: 6px; font-size: 11px;">
+              <i class="ti ti-upload"></i> Restaurar (JSON)
+            </button>
+            <input type="file" id="f-import-json" accept=".json" style="display:none" onchange="importJSONBackup(event)">
+          </div>
+        </div>
+
+        <!-- Catálogo de Servicios Predefinidos -->
+        <div style="border-top: 1.5px dashed var(--border); margin-top: 15px; padding-top: 15px;">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text);"><i class="ti ti-building-store"></i> Catálogo de Servicios</div>
+          <div style="font-size: 11px; color: var(--text2); margin-bottom: 10px; line-height: 1.4;">
+            Administra los servicios que aparecen en el selector rápido al registrar o editar clientes.
+          </div>
+          
+          <div style="max-height: 120px; overflow-y: auto; background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 6px; margin-bottom: 10px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;" id="tabla-servicios-config">
+              <!-- Renderizado dinámicamente -->
+            </table>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+            <input type="text" id="fc-serv-nombre" placeholder="Servicio (ej. GPS)" style="font-size: 11px; padding: 4px 8px; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius);">
+            <input type="text" id="fc-serv-desc" placeholder="Equipo (ej. GPS-Tracker)" style="font-size: 11px; padding: 4px 8px; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius);">
+            <select id="fc-serv-freq" style="font-size: 11px; padding: 4px 8px; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius);">
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="semestral">Semestral</option>
+              <option value="anual">Anual</option>
+            </select>
+            <input type="number" id="fc-serv-monto" placeholder="Monto (ej. 150)" style="font-size: 11px; padding: 4px 8px; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius);">
+          </div>
+          <button class="btn btn-xs btn-primary" onclick="agregarServicioCatalogo()" style="width: 100%; padding: 6px; font-size: 11px;">
+            <i class="ti ti-plus"></i> Agregar Servicio
+          </button>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="margin-top: 20px;">
+        <button class="btn btn-sm" onclick="closeEmpresaModal()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEmpresaData()">
+          <i class="ti ti-device-floppy"></i> Guardar configuración
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-confirm" style="display:none" class="modal-bg" role="alertdialog" aria-modal="true"
+    aria-labelledby="confirm-title">
+    <div class="modal" style="max-width:400px;text-align:center;padding:2rem 1.5rem">
+      <div style="font-size:48px;margin-bottom:.75rem" id="confirm-icon">⚠️</div>
+      <h3 id="confirm-title" style="font-size:var(--fs-md);font-weight:700;margin-bottom:.5rem"></h3>
+      <p id="confirm-body" style="color:var(--text2);font-size:var(--fs-sm);margin-bottom:1.5rem"></p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-sm" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn-sm btn-danger" id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+  <script>
+    /* ── CONSTANTS ── */
+    const FLBL = { mensual: 'Mensual', trimestral: 'Trimestral', semestral: 'Semestral', anual: 'Anual' };
+    const STORAGE_KEY = 'sec_cobros_v3';
+
+    let clientes = [];
+    let empresaData = { nombre: 'Detektor', logo: '', rfc: '', dir: '' };
+    let editId = null;
+    let calM = new Date().getMonth();
+    let calY = new Date().getFullYear();
+    let cuentaSeq = 1000;
+    let fontSize = 16; // base font size px
+    let sortClientes = { col: 'nombre', asc: true };
+    let sortPend = { col: 'proximoCobro', asc: true };
+    let pageClientes = 1, pagePend = 1;
+    let activeClientForShare = null;
+    let activeShareFilename = 'recibo.pdf';
+    const PAGE_SIZE = 20;
+    let _confirmCancel = null;
+
+    function debounce(fn, ms) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms) };
+    }
+    const debouncedPend = debounce(q => { pagePend = 1; renderPend(q) }, 220);
+    const debouncedClientes = debounce(q => { pageClientes = 1; renderClientes(q) }, 220);
+
+    /* ── FONT SIZE ── */
+    function changeFontSize(delta) {
+      fontSize = Math.min(24, Math.max(13, fontSize + delta));
+      document.documentElement.style.setProperty('--fs-base', fontSize + 'px');
+      document.documentElement.style.setProperty('--fs-xs', (fontSize - 3) + 'px');
+      document.documentElement.style.setProperty('--fs-sm', (fontSize - 1) + 'px');
+      document.documentElement.style.setProperty('--fs-md', (fontSize + 2) + 'px');
+      document.documentElement.style.setProperty('--fs-lg', (fontSize + 6) + 'px');
+      document.documentElement.style.setProperty('--fs-xl', (fontSize + 12) + 'px');
+      localStorage.setItem('sec_fontSize', fontSize);
+    }
+
+    /* ── TOAST ── */
+    function showToast(msg = '✓ Guardado') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function showConfirm(title, body, okLabel = 'Confirmar', danger = true) {
+      return new Promise(res => {
+        const m = document.getElementById('modal-confirm');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-body').textContent = body;
+        const okBtn = document.getElementById('confirm-ok');
+        const cancelBtn = document.getElementById('confirm-cancel');
+        okBtn.textContent = okLabel;
+        okBtn.className = 'btn btn-sm ' + (danger ? 'btn-danger' : 'btn-success');
+        m.style.display = 'flex';
+        const cleanup = () => {
+          okBtn.removeEventListener('click', ok);
+          cancelBtn.removeEventListener('click', no);
+          _confirmCancel = null;
+        };
+        const ok = () => { m.style.display = 'none'; cleanup(); res(true) };
+        const no = () => { m.style.display = 'none'; cleanup(); res(false) };
+        _confirmCancel = no;
+        okBtn.addEventListener('click', ok);
+        cancelBtn.addEventListener('click', no);
+      });
+    }
+
+    /* ── CONFIGURACIÓN DE EMPRESA ── */
+    function renderHeaderBrand() {
+      const brandContainer = document.getElementById('main-header-brand');
+      if (!brandContainer) return;
+      
+      let logoHtml = `<div class="header-logo"><i class="ti ti-shield-lock"></i></div>`;
+      if (empresaData.logo) {
+        logoHtml = `<div style="display: flex; align-items: center; justify-content: center; height: 60px; max-width: 180px; margin-right: 4px; overflow: hidden;">
+          <img src="${empresaData.logo}" style="max-height: 60px; max-width: 180px; object-fit: contain; border-radius: 6px;" alt="Logo">
+        </div>`;
+      }
+      
+      const nombre = empresaData.nombre || "Sistema de Cobros";
+      const sublinea = empresaData.rfc ? `RFC: ${empresaData.rfc}` : 'Sistema de Cobros';
+      const dirStr = empresaData.dir ? `<div style="font-size: 11px; color: var(--text3); font-weight: 400; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;" title="${escAttr(empresaData.dir)}">${escAttr(empresaData.dir)}</div>` : '';
+      
+      brandContainer.innerHTML = `
+        ${logoHtml}
+        <div>
+          <div class="header-title" style="font-weight:700; font-size: 15px; line-height: 1.2;">${escAttr(nombre)}</div>
+          <div class="header-sub" style="font-size: 12px; font-weight: 600; line-height: 1.2; color: var(--text2); margin-top: 1px;">${escAttr(sublinea)}</div>
+          ${dirStr}
+          <div id="header-date" style="font-size:11px; color:#888; margin-top:3px; font-weight: 500;">${fmtDate(todayStr())}</div>
+        </div>
+      `;
+    }
+
+    function openEmpresaModal() {
+      document.getElementById('f-empresa-nombre').value = empresaData.nombre || '';
+      document.getElementById('f-empresa-rfc').value = empresaData.rfc || '';
+      document.getElementById('f-empresa-dir').value = empresaData.dir || '';
+      
+      updateEmpresaLogoPreviewUI();
+      renderServiciosConfigTable();
+      
+      document.getElementById('modal-empresa').style.display = 'flex';
+    }
+
+    function closeEmpresaModal() {
+      document.getElementById('modal-empresa').style.display = 'none';
+      document.getElementById('f-empresa-logo').value = ''; // Reset file input
+    }
+
+    function updateEmpresaLogoPreviewUI() {
+      const preview = document.getElementById('empresa-logo-preview');
+      const delBtn = document.getElementById('btn-delete-logo');
+      
+      if (empresaData.logo) {
+        preview.innerHTML = `<img src="${empresaData.logo}" style="max-height: 100%; max-width: 100%; object-fit: contain;">`;
+        delBtn.style.display = 'inline-block';
+      } else {
+        preview.innerHTML = `<i class="ti ti-photo" style="font-size: 28px; color: var(--text3);"></i>`;
+        delBtn.style.display = 'none';
+      }
+    }
+
+    function handleEmpresaLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es demasiado grande. El límite es de 2 MB.');
+        event.target.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        empresaData.logo = e.target.result;
+        updateEmpresaLogoPreviewUI();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function deleteEmpresaLogo() {
+      empresaData.logo = '';
+      updateEmpresaLogoPreviewUI();
+      document.getElementById('f-empresa-logo').value = '';
+    }
+
+    function saveEmpresaData() {
+      const nombre = document.getElementById('f-empresa-nombre').value.trim();
+      const rfc = document.getElementById('f-empresa-rfc').value.trim();
+      const dir = document.getElementById('f-empresa-dir').value.trim();
+      
+      if (!nombre) {
+        alert('El nombre comercial de la empresa es obligatorio.');
+        return;
+      }
+      
+      empresaData.nombre = nombre;
+      empresaData.rfc = rfc;
+      empresaData.dir = dir;
+      
+      try {
+        localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
+        showToast('✓ Datos de empresa guardados');
+        closeEmpresaModal();
+        renderHeaderBrand();
+      } catch (e) {
+        showToast('⚠ Error al guardar');
+      }
+    }
+
+    /* ── PERSISTENCE ── */
+    function loadData() {
+      try {
+        const rawEmpresa = localStorage.getItem('sec_empresa_v3');
+        if (rawEmpresa) {
+          empresaData = JSON.parse(rawEmpresa);
+        }
+      } catch (e) { console.error(e) }
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw); clientes = p.clientes || []; cuentaSeq = p.seq || 1000;
+          if (p.savedAt) {
+            const ts = new Date(p.savedAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            setTimeout(() => { const el = document.getElementById('last-saved'); if (el) el.textContent = 'Guardado ' + ts }, 100);
+          }
+        }
+        const fs = localStorage.getItem('sec_fontSize');
+        if (fs) { fontSize = parseInt(fs); changeFontSize(0) }
+      } catch (e) { clientes = [] }
+      if (!clientes.length) seedDemo();
+      renderHeaderBrand();
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
+        showToast('✓ Datos guardados');
+        const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        const el = document.getElementById('last-saved');
+        if (el) el.textContent = 'Guardado ' + ts;
+      } catch (e) { showToast('⚠ Error al guardar') }
+    }
+
+    function nextCuenta() { cuentaSeq++; return 'SEC-' + String(cuentaSeq).padStart(4, '0') }
+
+    /* ── DEMO DATA ── */
+    function seedDemo() {
+      const t = new Date();
+      const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const ago = n => { const d = new Date(t); d.setDate(d.getDate() - n); return fmt(d) };
+      const fwd = n => { const d = new Date(t); d.setDate(d.getDate() + n); return fmt(d) };
+      clientes = [
+        { id: '1', cuenta: 'SEC-1001', nombre: 'Carlos Mendoza', tel: '614-123-4567', email: 'carlos@gmail.com', rfc: '', dir: 'Col. Centro, Chihuahua', freq: 'mensual', monto: 200, descuento: 0, inicio: ago(180), proximoCobro: ago(5), servicio: 'Alarma', desc: 'Panel DSC 1832', notas: 'Paga en efectivo', estado: 'activo', pagos: [] },
+        { id: '2', cuenta: 'SEC-1002', nombre: 'Ana Flores', tel: '614-234-5678', email: '', rfc: 'FOAA850212', dir: 'Fracc. Las Quintas', freq: 'mensual', monto: 350, descuento: 0, inicio: ago(90), proximoCobro: fwd(2), servicio: 'CCTV + Alarma', desc: '4 cámaras Hikvision', notas: '', estado: 'activo', pagos: [{ fecha: ago(30), monto: 350 }] },
+        { id: '3', cuenta: 'SEC-1003', nombre: 'Roberto Solis', tel: '614-345-6789', email: 'rsolis@empresa.com', rfc: '', dir: 'Col. San Felipe', freq: 'trimestral', monto: 450, descuento: 10, inicio: ago(270), proximoCobro: fwd(6), servicio: 'GPS Vehículo', desc: '2 unidades', notas: '10% descuento flotilla', estado: 'activo', pagos: [{ fecha: ago(91), monto: 450 }] },
+        { id: '4', cuenta: 'SEC-1004', nombre: 'María Gutiérrez', tel: '614-456-7890', email: '', rfc: '', dir: 'Col. Mirador', freq: 'mensual', monto: 150, descuento: 0, inicio: ago(365), proximoCobro: ago(1), servicio: 'Alarma', desc: 'Panel Paradox', notas: 'Cliente antiguo', estado: 'activo', pagos: [] },
+        { id: '5', cuenta: 'SEC-1005', nombre: 'Luis Ramírez', tel: '614-567-8901', email: '', rfc: 'RALL770901', dir: 'Fracc. Praderas del Sol', freq: 'semestral', monto: 900, descuento: 5, inicio: ago(60), proximoCobro: fwd(14), servicio: 'CCTV', desc: '8 cámaras + NVR', notas: 'Descuento 5%', estado: 'activo', pagos: [] },
+      ];
+      cuentaSeq = 1005;
+      saveData();
+    }
+
+    /* ── UTILS ── */
+    function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
+    function fmtDate(s) { if (!s) return '—'; const d = parseDate(s); return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) }
+    function todayStr() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}` }
+    function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+    function diffDays(ds) { const t = new Date(); t.setHours(0, 0, 0, 0); const d = parseDate(ds); d.setHours(0, 0, 0, 0); return Math.round((d - t) / (864e5)) }
+    function montoFinal(c) { return Math.round(c.monto * (1 - (c.descuento || 0) / 100)) }
+    function addPeriodo(fecha, freq) {
+      const d = typeof fecha === 'string' ? parseDate(fecha) : new Date(fecha);
+      const map = { mensual: [0, 1], trimestral: [0, 3], semestral: [0, 6], anual: [1, 0] };
+      const [addY, addM] = map[freq] || map.mensual;
+      d.setFullYear(d.getFullYear() + addY, d.getMonth() + addM, d.getDate());
+      return dateStr(d);
+    }
+    function periodoCubierto(desde, freq) {
+      const hasta = parseDate(addPeriodo(desde, freq));
+      hasta.setDate(hasta.getDate() - 1);
+      return { desde, hasta: dateStr(hasta) };
+    }
+    function escAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
+    function sortList(list, col, asc) {
+      return list.slice().sort((a, b) => {
+        let va = a[col] ?? '', vb = b[col] ?? '';
+        if (col === 'monto') { va = montoFinal(a); vb = montoFinal(b) }
+        if (col === 'cuenta') { va = Number(String(va).replace(/\D/g, '')); vb = Number(String(vb).replace(/\D/g, '')) }
+        if (typeof va === 'number') return asc ? va - vb : vb - va;
+        return asc ? String(va).localeCompare(String(vb), 'es') : String(vb).localeCompare(String(va), 'es');
+      });
+    }
+    function sortArrow(state, col) { return state.col === col ? (state.asc ? '↑' : '↓') : '' }
+
+    function initResizableTable(containerId, storageKey) {
+      const table = document.querySelector(`#${containerId} table`);
+      if (!table || window.matchMedia('(max-width: 760px)').matches) return;
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      if (!headers.length) return;
+      let widths = [];
+      try { widths = JSON.parse(localStorage.getItem(storageKey) || '[]') } catch (e) { widths = [] }
+      headers.forEach((th, i) => {
+        if (widths[i]) th.style.width = widths[i] + 'px';
+        if (th.querySelector('.col-resizer')) return;
+        const handle = document.createElement('span');
+        handle.className = 'col-resizer';
+        handle.setAttribute('aria-hidden', 'true');
+        th.appendChild(handle);
+        handle.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        handle.addEventListener('mousedown', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startW = th.getBoundingClientRect().width;
+          document.body.classList.add('resizing-cols');
+          const move = ev => {
+            const next = Math.max(44, Math.round(startW + ev.clientX - startX));
+            th.style.width = next + 'px';
+          };
+          const up = () => {
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+            document.body.classList.remove('resizing-cols');
+            const saved = headers.map(h => Math.round(h.getBoundingClientRect().width));
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+          };
+          document.addEventListener('mousemove', move);
+          document.addEventListener('mouseup', up);
+        });
+      });
+    }
+
+    function initTableResizers() {
+      initResizableTable('prox-table', 'sec_cols_prox');
+      initResizableTable('pend-table', 'sec_cols_pend');
+      initResizableTable('cli-table', 'sec_cols_cli');
+    }
+
+    function statusBadge(c) {
+      if (c.estado === 'cancelado') return `<span class="badge b-gray">❌ Cancelado</span>`;
+      if (c.estado === 'suspendido') {
+        const d = diffDays(c.proximoCobro);
+        if (d < 0) return `<span class="badge b-danger">⏸ Susp. + vencido</span>`;
+        return `<span class="badge b-warn">⏸ Suspendido</span>`;
+      }
+      const d = diffDays(c.proximoCobro);
+      if (d < 0) return `<span class="badge b-danger">⚠ Vencido ${Math.abs(d)}d</span>`;
+      if (d === 0) return `<span class="badge b-warn">🔔 Hoy</span>`;
+      if (d <= 7) return `<span class="badge b-info">📅 En ${d}d</span>`;
+      return `<span class="badge b-gray">En ${d}d</span>`;
+    }
+
+    /* ── WHATSAPP RECORDATORIO ── */
+    function enviarWhatsApp(id) {
+      const c = clientes.find(x => x.id === id); if (!c) return;
+      let tel = (c.contactoCel || c.tel || '').replace(/\D/g, '');
+      if (!tel) {
+        showToast('⚠ El cliente no tiene teléfono ni celular registrado');
+        return;
+      }
+      if (tel.length === 10) tel = '52' + tel; // México por defecto
+      
+      const hoy = todayStr();
+      const vencido = c.proximoCobro < hoy;
+      const total = montoFinal(c).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+      const nombreSaludo = c.contactoNombre || c.nombre;
+      
+      let msg = '';
+      if (vencido) {
+        const d = Math.abs(diffDays(c.proximoCobro));
+        msg = `Hola ${nombreSaludo}, le recordamos amigablemente que su pago de $${total} MXN por el servicio de ${c.servicio || 'Servicio'} venció el ${fmtDate(c.proximoCobro)} (hace ${d} días). Quedamos a sus órdenes para recibir su confirmación de pago.`;
+      } else {
+        msg = `Hola ${nombreSaludo}, le recordamos que su próximo pago de $${total} MXN por el servicio de ${c.servicio || 'Servicio'} vencerá el ${fmtDate(c.proximoCobro)}. Quedamos a sus órdenes para cualquier duda o aclaración.`;
+      }
+      
+      window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    /* ── CATÁLOGO DE SERVICIOS PREDEFINIDOS ── */
+    let serviciosPredefinidos = [];
+    
+    function initServiciosCatalog() {
+      const raw = localStorage.getItem('sec_servicios_v3');
+      if (raw) {
+        serviciosPredefinidos = JSON.parse(raw);
+      } else {
+        serviciosPredefinidos = [
+          { nombre: 'Alarma Residencial', desc: 'Panel DSC 1832', freq: 'mensual', monto: 200 },
+          { nombre: 'CCTV + Alarma', desc: '4 cámaras Hikvision', freq: 'mensual', monto: 350 },
+          { nombre: 'GPS Vehículo', desc: 'Monitoreo satelital', freq: 'mensual', monto: 150 },
+          { nombre: 'CCTV', desc: '8 cámaras + NVR', freq: 'mensual', monto: 300 }
+        ];
+        saveServiciosCatalog();
+      }
+      renderServiciosSelect();
+      renderServiciosConfigTable();
+    }
+    
+    function saveServiciosCatalog() {
+      localStorage.setItem('sec_servicios_v3', JSON.stringify(serviciosPredefinidos));
+    }
+    
+    function renderServiciosSelect() {
+      const select = document.getElementById('f-serv-predef');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Seleccionar de catálogo para autocompletar --</option>' +
+        serviciosPredefinidos.map((s, idx) => {
+          return `<option value="${idx}">${escAttr(s.nombre)} - $${Number(s.monto).toLocaleString()} (${FLBL[s.freq] || s.freq})</option>`;
+        }).join('');
+    }
+    
+    function renderServiciosConfigTable() {
+      const table = document.getElementById('tabla-servicios-config');
+      if (!table) return;
+      if (serviciosPredefinidos.length === 0) {
+        table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text3); padding: 8px;">No hay servicios en el catálogo.</td></tr>`;
+        return;
+      }
+      table.innerHTML = serviciosPredefinidos.map((s, idx) => {
+        return `<tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 6px 4px; font-weight: bold; color: var(--text);">${escAttr(s.nombre)}</td>
+          <td style="padding: 6px 4px; color: var(--text2);">${escAttr(s.desc || '')}</td>
+          <td style="padding: 6px 4px; font-weight: bold; color: var(--green); text-align: right;">$${Number(s.monto).toLocaleString()}</td>
+          <td style="padding: 6px 4px; text-align: right;">
+            <button class="btn btn-xs btn-danger" onclick="eliminarServicioCatalogo(${idx})" title="Eliminar del catálogo" style="padding: 2px 4px;">
+              <i class="ti ti-trash" style="font-size: 11px;"></i>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function agregarServicioCatalogo() {
+      const nombre = document.getElementById('fc-serv-nombre').value.trim();
+      const desc = document.getElementById('fc-serv-desc').value.trim();
+      const freq = document.getElementById('fc-serv-freq').value;
+      const monto = document.getElementById('fc-serv-monto').value;
+      
+      if (!nombre) { showToast('⚠ El nombre del servicio es obligatorio'); return; }
+      if (!monto || Number(monto) <= 0) { showToast('⚠ El monto debe ser mayor a 0'); return; }
+      
+      serviciosPredefinidos.push({ nombre, desc, freq, monto: Number(monto) });
+      saveServiciosCatalog();
+      renderServiciosSelect();
+      renderServiciosConfigTable();
+      
+      document.getElementById('fc-serv-nombre').value = '';
+      document.getElementById('fc-serv-desc').value = '';
+      document.getElementById('fc-serv-monto').value = '';
+      showToast('✓ Servicio agregado al catálogo');
+    }
+    
+    function eliminarServicioCatalogo(idx) {
+      serviciosPredefinidos.splice(idx, 1);
+      saveServiciosCatalog();
+      renderServiciosSelect();
+      renderServiciosConfigTable();
+      showToast('✓ Servicio eliminado del catálogo');
+    }
+    
+    function cargarServicioPredefinido() {
+      const idx = document.getElementById('f-serv-predef').value;
+      if (idx === '') return;
+      const s = serviciosPredefinidos[idx];
+      if (!s) return;
+      
+      document.getElementById('f-serv').value = s.nombre;
+      document.getElementById('f-desc').value = s.desc || '';
+      document.getElementById('f-freq').value = s.freq || 'mensual';
+      document.getElementById('f-monto').value = s.monto;
+      
+      document.getElementById('f-serv-predef').value = '';
+      actualizarPreviewMonto();
+    }
+
+    /* ── RESPALDO COMPLETO EN JSON ── */
+    function exportJSONBackup() {
+      const dataStr = JSON.stringify({
+        clientes,
+        seq: cuentaSeq,
+        empresaData,
+        serviciosPredefinidos,
+        backupVersion: 1.0,
+        exportedAt: new Date().toISOString()
+      }, null, 2);
+      
+      const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `backup_detektor_${todayStr()}.json`;
+      a.click();
+      showToast('✓ Respaldo JSON exportado con éxito');
+    }
+    
+    function importJSONBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const r = new FileReader();
+      r.onload = async function(ev) {
+        try {
+          const backup = JSON.parse(ev.target.result);
+          if (!backup || !Array.isArray(backup.clientes)) {
+            showToast('⚠ Archivo de respaldo no válido (debe contener clientes)');
+            return;
+          }
+          
+          const ok = await showConfirm('Restaurar Respaldo', 'Esto reemplazará todos los datos actuales con los del archivo de respaldo. ¿Deseas continuar?', 'Restaurar', false);
+          if (!ok) return;
+          
+          clientes = backup.clientes;
+          cuentaSeq = backup.seq || 1000;
+          if (backup.empresaData) empresaData = backup.empresaData;
+          if (backup.serviciosPredefinidos) serviciosPredefinidos = backup.serviciosPredefinidos;
+          
+          saveData();
+          saveServiciosCatalog();
+          
+          document.getElementById('f-empresa-nombre').value = empresaData.nombre || '';
+          document.getElementById('f-empresa-rfc').value = empresaData.rfc || '';
+          document.getElementById('f-empresa-dir').value = empresaData.dir || '';
+          updateEmpresaLogoPreviewUI();
+          
+          renderHeaderBrand();
+          renderDash();
+          renderClientes();
+          renderPend();
+          renderCal();
+          renderServiciosSelect();
+          renderServiciosConfigTable();
+          
+          showToast('✓ Datos restaurados con éxito');
+          closeEmpresaModal();
+        } catch (err) {
+          console.error(err);
+          showToast('⚠ Error al procesar el archivo JSON');
+        }
+      };
+      r.readAsText(file, 'UTF-8');
+      e.target.value = '';
+    }
+
+    /* ── REPORTE GLOBAL DE INGRESOS ── */
+    function initIngresosDates() {
+      const hoy = new Date();
+      const y = hoy.getFullYear();
+      const m = hoy.getMonth();
+      const desde = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      const hasta = todayStr();
+      document.getElementById('fi-desde').value = desde;
+      document.getElementById('fi-hasta').value = hasta;
+    }
+    
+    function renderIngresos() {
+      const desdeVal = document.getElementById('fi-desde').value;
+      const hastaVal = document.getElementById('fi-hasta').value;
+      
+      const allPayments = [];
+      clientes.forEach(c => {
+        (c.pagos || []).forEach(p => {
+          allPayments.push({
+            clientId: c.id,
+            clientName: c.nombre,
+            clientCuenta: c.cuenta,
+            clientServicio: c.servicio || 'Servicio',
+            fecha: p.fecha,
+            monto: Number(p.monto),
+            recibo: p.recibo || '—',
+            periodoDesde: p.periodoDesde,
+            periodoHasta: p.periodoHasta
+          });
+        });
+      });
+      
+      const filtered = allPayments.filter(p => {
+        if (desdeVal && p.fecha < desdeVal) return false;
+        if (hastaVal && p.fecha > hastaVal) return false;
+        return true;
+      });
+      
+      filtered.sort((a, b) => b.fecha.localeCompare(a.fecha));
+      
+      const totalMonto = filtered.reduce((sum, p) => sum + p.monto, 0);
+      document.getElementById('ingresos-total-monto').textContent = `$${totalMonto.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+      document.getElementById('ingresos-total-pagos').textContent = filtered.length;
+      
+      if (filtered.length === 0) {
+        document.getElementById('ingresos-table').innerHTML = `<div class="empty"><i class="ti ti-receipt-off"></i><p>No se encontraron pagos registrados en este período.</p></div>`;
+        return;
+      }
+      
+      document.getElementById('ingresos-table').innerHTML = `<div class="tbl-wrap">
+        <table aria-label="Historial global de ingresos">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Cuenta</th>
+              <th>Cliente</th>
+              <th>Servicio</th>
+              <th>N° Recibo</th>
+              <th style="text-align: right;">Monto</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(p => `
+              <tr>
+                <td><strong>${fmtDate(p.fecha)}</strong></td>
+                <td><span class="acct-badge">${p.clientCuenta}</span></td>
+                <td style="color: var(--blue); font-weight: 600; cursor: pointer;" onclick="openEditor('${p.clientId}')">${escAttr(p.clientName)}</td>
+                <td style="color: var(--text2);">${escAttr(p.clientServicio)}</td>
+                <td><code style="font-family: monospace; font-size: 11px;">${p.recibo}</code></td>
+                <td style="text-align: right; font-weight: bold; color: var(--green);">$${p.monto.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
+                <td style="text-align: center;">
+                  <button class="btn btn-xs" onclick="verRecibo('${p.clientId}', '${p.fecha}')" title="Ver/Imprimir Recibo">
+                    <i class="ti ti-printer"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    }
+    
+    function exportIngresosCSV() {
+      const desdeVal = document.getElementById('fi-desde').value;
+      const hastaVal = document.getElementById('fi-hasta').value;
+      
+      const allPayments = [];
+      clientes.forEach(c => {
+        (c.pagos || []).forEach(p => {
+          allPayments.push({
+            clientCuenta: c.cuenta,
+            clientName: c.nombre,
+            clientServicio: c.servicio || 'Servicio',
+            fecha: p.fecha,
+            monto: Number(p.monto),
+            recibo: p.recibo || '—'
+          });
+        });
+      });
+      
+      const filtered = allPayments.filter(p => {
+        if (desdeVal && p.fecha < desdeVal) return false;
+        if (hastaVal && p.fecha > hastaVal) return false;
+        return true;
+      });
+      
+      filtered.sort((a, b) => b.fecha.localeCompare(a.fecha));
+      
+      const hdr = 'Fecha,N° Cuenta,Cliente,Servicio,N° Recibo,Monto\n';
+      const rows = filtered.map(p => [
+        p.fecha,
+        p.clientCuenta,
+        p.clientName,
+        p.clientServicio,
+        p.recibo,
+        p.monto
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
+      
+      const blob = new Blob(['\uFEFF' + hdr + rows], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `reporte_ingresos_${desdeVal || 'inicio'}_a_${hastaVal || 'fin'}.csv`;
+      a.click();
+      showToast('✓ Reporte CSV exportado');
+    }
+
+    /* ── TABS ── */
+    function showTab(t) {
+      const ts = ['dashboard', 'pendientes', 'clientes', 'calendario', 'ingresos'];
+      document.querySelectorAll('.tab').forEach((el, i) => {
+        el.classList.toggle('active', ts[i] === t);
+        el.setAttribute('aria-selected', ts[i] === t);
+      });
+      document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + t).classList.add('active');
+      if (t === 'dashboard') renderDash();
+      if (t === 'pendientes') renderPend();
+      if (t === 'clientes') renderClientes();
+      if (t === 'calendario') renderCal();
+      if (t === 'ingresos') renderIngresos();
+    }
+
+    /* ── DASHBOARD ── */
+    function renderDash() {
+      const activos = clientes.filter(c => c.estado === 'activo');
+      const vencidos = activos.filter(c => diffDays(c.proximoCobro) < 0);
+      const hoy = activos.filter(c => diffDays(c.proximoCobro) === 0);
+      const semana = activos.filter(c => { const d = diffDays(c.proximoCobro); return d >= 0 && d <= 7 });
+      const totalMes = activos.filter(c => { const d = diffDays(c.proximoCobro); return d >= 0 && d <= 30 }).reduce((a, c) => a + montoFinal(c), 0);
+      const totalRecaudado = clientes.reduce((a, c) => a + (c.pagos || []).reduce((b, p) => b + Number(p.monto), 0), 0);
+      const numPagos = clientes.reduce((a, c) => a + (c.pagos || []).length, 0);
+
+      document.getElementById('stats-cards').innerHTML = `
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--blue)"><i class="ti ti-users"></i></div>
+      <div class="card-label">Clientes activos</div>
+      <div class="card-value blue">${activos.length}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Contratos vigentes</div>
+    </div>
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--red)"><i class="ti ti-alert-triangle"></i></div>
+      <div class="card-label">Vencidos</div>
+      <div class="card-value danger">${vencidos.length}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Requieren atención</div>
+    </div>
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--amber)"><i class="ti ti-bell"></i></div>
+      <div class="card-label">Cobros hoy</div>
+      <div class="card-value warn">${hoy.length}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Programados hoy</div>
+    </div>
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--blue)"><i class="ti ti-calendar-week"></i></div>
+      <div class="card-label">Esta semana</div>
+      <div class="card-value">${semana.length}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Próximos 7 días</div>
+    </div>
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--green)"><i class="ti ti-cash"></i></div>
+      <div class="card-label">Próximos 30 días</div>
+      <div class="card-value success">$${totalMes.toLocaleString()}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Ingreso esperado</div>
+    </div>
+    <div class="card">
+      <div style="font-size:32px;margin-bottom:4px;color:var(--green)"><i class="ti ti-report-money"></i></div>
+      <div class="card-label">Total recaudado</div>
+      <div class="card-value success">$${totalRecaudado.toLocaleString()}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">${numPagos} pago(s) registrados</div>
+    </div>`;
+
+      document.getElementById('venc-alert').innerHTML = vencidos.length
+        ? `<div class="alert-box a-danger" role="alert"><i class="ti ti-alert-triangle" style="font-size:22px"></i><div><strong>${vencidos.length} cliente(s) con cobro vencido.</strong> Revisa la pestaña Pendientes.</div></div>` : '';
+
+      const prox = activos.filter(c => { const d = diffDays(c.proximoCobro); return d >= 0 && d <= 7 }).sort((a, b) => diffDays(a.proximoCobro) - diffDays(b.proximoCobro));
+      const badgeEl = document.getElementById('badge-pend');
+      if (badgeEl) {
+        if (vencidos.length) { badgeEl.textContent = vencidos.length; badgeEl.style.display = 'inline' }
+        else { badgeEl.style.display = 'none' }
+      }
+      if (!prox.length) {
+        document.getElementById('prox-table').innerHTML = `<div class="empty"><i class="ti ti-check"></i><p>Sin cobros en los próximos 7 días</p></div>`;
+      } else {
+        document.getElementById('prox-table').innerHTML = `<div class="tbl-wrap"><table aria-label="Próximos cobros">
+      <thead><tr>
+        <th>Cuenta</th><th>Cliente</th><th>Servicio</th><th>Frecuencia</th><th>Monto</th><th>Fecha</th><th>Estado</th><th></th>
+      </tr></thead>
+      <tbody>${prox.map(c => `<tr>
+        <td><span class="acct-badge">${c.cuenta}</span></td>
+        <td><strong>${c.nombre}</strong></td>
+        <td style="color:var(--text2)">${c.servicio || '—'}</td>
+        <td>${FLBL[c.freq]}</td>
+        <td><strong>$${montoFinal(c).toLocaleString()}</strong>${c.descuento ? `<span style="font-size:11px;color:var(--amber);margin-left:4px">-${c.descuento}%</span>` : ''}</td>
+        <td>${fmtDate(c.proximoCobro)}</td>
+        <td>${statusBadge(c)}</td>
+        <td><button class="btn btn-xs btn-success" onclick="registrarPago('${c.id}')"><i class="ti ti-check"></i> Cobrar</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+      }
+
+      const meses = [];
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(); d.setMonth(d.getMonth() + i);
+        const y = d.getFullYear(), m = d.getMonth();
+        const lbl = d.toLocaleDateString('es-MX', { month: 'short' });
+        const total = clientes.filter(c => c.estado === 'activo').filter(c => {
+          const pd = parseDate(c.proximoCobro);
+          return pd.getFullYear() === y && pd.getMonth() === m;
+        }).reduce((a, c) => a + montoFinal(c), 0);
+        meses.push({ lbl, total });
+      }
+      const maxVal = Math.max(...meses.map(m => m.total), 1);
+      document.getElementById('chart-mensual').innerHTML = meses.map(m => `
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:6px">
+      <div style="font-size:11px;color:var(--text2);font-weight:600">$${m.total ? (m.total / 1000).toFixed(1) + 'k' : '0'}</div>
+      <div style="width:100%;background:var(--bg3);border-radius:6px 6px 0 0;height:80px;display:flex;align-items:flex-end">
+        <div style="width:100%;background:var(--blue);border-radius:6px 6px 0 0;height:${Math.round((m.total / maxVal) * 100)}%;min-height:${m.total ? '4px' : '0'};transition:height .4s ease"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${m.lbl}</div>
+    </div>`).join('');
+      initTableResizers();
+    }
+
+    /* ── PENDIENTES ── */
+    function renderPend(search) {
+      if (search !== undefined) pagePend = 1;
+      const q = (search || document.getElementById('sp')?.value || '').toLowerCase();
+      const f = document.getElementById('fp')?.value || '';
+      let list = clientes.filter(c => {
+        if (c.estado === 'cancelado') return false;
+        const match = !q || c.nombre.toLowerCase().includes(q) || c.cuenta.toLowerCase().includes(q) || c.tel?.includes(q);
+        if (!match) return false;
+        const d = diffDays(c.proximoCobro);
+        if (f === 'v') return d < 0;
+        if (f === 'h') return d === 0;
+        if (f === 's') return d >= 0 && d <= 7;
+        if (f === 'm') return d >= 0 && d <= 30;
+        return true;
+      });
+      list = sortList(list, sortPend.col, sortPend.asc);
+      const countEl = document.getElementById('pend-count');
+      if (countEl) countEl.textContent = list.length > 0 ? `${list.length} cobro(s)` : '';
+
+      if (!list.length) {
+        document.getElementById('pend-table').innerHTML = `<div class="empty"><i class="ti ti-search"></i><p>No se encontraron cobros pendientes.</p><button class="btn btn-primary btn-sm" onclick="openEditor(null)"><i class="ti ti-plus"></i> Agregar cliente</button></div>`;
+        return;
+      }
+      const totalPages = Math.ceil(list.length / PAGE_SIZE);
+      if (pagePend > totalPages) pagePend = 1;
+      const paginated = list.slice((pagePend - 1) * PAGE_SIZE, pagePend * PAGE_SIZE);
+      document.getElementById('pend-table').innerHTML = `<div class="tbl-wrap"><table aria-label="Cobros pendientes">
+    <thead><tr>
+      <th class="sortable" onclick="sortPend={col:'cuenta',asc:sortPend.col==='cuenta'?!sortPend.asc:true};pagePend=1;renderPend()">Cuenta ${sortArrow(sortPend, 'cuenta')}</th>
+      <th class="sortable" onclick="sortPend={col:'nombre',asc:sortPend.col==='nombre'?!sortPend.asc:true};pagePend=1;renderPend()">Cliente ${sortArrow(sortPend, 'nombre')}</th>
+      <th>Teléfono</th><th>Servicio</th>
+      <th class="sortable" onclick="sortPend={col:'monto',asc:sortPend.col==='monto'?!sortPend.asc:true};pagePend=1;renderPend()">Monto ${sortArrow(sortPend, 'monto')}</th>
+      <th class="sortable" onclick="sortPend={col:'proximoCobro',asc:sortPend.col==='proximoCobro'?!sortPend.asc:true};pagePend=1;renderPend()">Próx. cobro ${sortArrow(sortPend, 'proximoCobro')}</th>
+      <th class="sortable" onclick="sortPend={col:'estado',asc:sortPend.col==='estado'?!sortPend.asc:true};pagePend=1;renderPend()">Estado ${sortArrow(sortPend, 'estado')}</th>
+      <th>Acciones</th>
+    </tr></thead>
+    <tbody>${paginated.map(c => {
+        const dDays = diffDays(c.proximoCobro);
+        const rowCls = c.estado === 'activo' && dDays < 0 ? 'row-vencido' : c.estado === 'activo' && dDays === 0 ? 'row-hoy' : '';
+        let dateBadge = '';
+        if (c.estado === 'activo') {
+          if (dDays < 0) {
+            dateBadge = `<br><span style="font-size:11px;color:var(--red);font-weight:700;display:inline-block;margin-top:2px"><i class="ti ti-alert-triangle"></i> Vencido hace ${Math.abs(dDays)} d</span>`;
+          } else if (dDays === 0) {
+            dateBadge = `<br><span style="font-size:11px;color:var(--amber);font-weight:700;display:inline-block;margin-top:2px"><i class="ti ti-clock"></i> ¡Toca Hoy!</span>`;
+          } else {
+            dateBadge = `<br><span style="font-size:11px;color:var(--text3);display:inline-block;margin-top:2px">En ${dDays} días</span>`;
+          }
+        }
+        return `<tr class="${rowCls}">
+      <td><span class="acct-badge">${c.cuenta}</span></td>
+      <td style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openEditor('${c.id}')" title="Editar cliente">${escAttr(c.nombre)}</td>
+      <td style="color:var(--text2)">${escAttr(c.tel || '—')}</td>
+      <td style="color:var(--text2)">${escAttr(c.servicio || '—')}</td>
+      <td><strong>$${montoFinal(c).toLocaleString()}</strong></td>
+      <td>${fmtDate(c.proximoCobro)}${dateBadge}</td>
+      <td>${statusBadge(c)}</td>
+      <td style="background:var(--bg2);border-radius:0 var(--radius) var(--radius) 0">
+        <div style="display:flex;gap:5px;align-items:center">
+          <button class="btn btn-xs btn-success" onclick="registrarPago('${c.id}')" title="Registrar pago de ${c.nombre}">
+            <i class="ti ti-check"></i> Cobrado
+          </button>
+          <button class="btn btn-xs" onclick="verRecibo('${c.id}')" aria-label="Ver recibo de ${c.nombre}" title="Ver recibo de ${c.nombre}">
+            <i class="ti ti-printer"></i>
+          </button>
+          <button class="btn btn-xs" onclick="openEditor('${c.id}')" title="Editar cliente ${c.nombre}">
+            <i class="ti ti-edit"></i>
+          </button>
+          ${c.tel ? `
+          <button class="btn btn-xs" onclick="enviarWhatsApp('${c.id}')" title="Enviar recordatorio por WhatsApp" style="background:#25d366;color:#fff;border-color:#25d366;padding:2px 6px">
+            <i class="ti ti-brand-whatsapp"></i>
+          </button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>`}).join('')}</tbody>
+  </table></div>`;
+      if (totalPages > 1) {
+        document.getElementById('pend-table').insertAdjacentHTML('beforeend', `<div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:var(--fs-sm)">
+      <button class="btn btn-xs" ${pagePend === 1 ? 'disabled' : ''} onclick="pagePend--;renderPend()"><i class="ti ti-chevron-left"></i></button>
+      <span style="color:var(--text2)">Página ${pagePend} de ${totalPages}</span>
+      <button class="btn btn-xs" ${pagePend === totalPages ? 'disabled' : ''} onclick="pagePend++;renderPend()"><i class="ti ti-chevron-right"></i></button>
+    </div>`);
+      }
+      initTableResizers();
+    }
+
+    /* ── CLIENTES ── */
+    function renderClientes(search) {
+      if (search !== undefined) pageClientes = 1;
+      const q = (search || document.getElementById('sc')?.value || '').toLowerCase();
+      const fe = document.getElementById('fc')?.value || '';
+      let list = clientes.filter(c => {
+        const match = !q ||
+          c.nombre.toLowerCase().includes(q) ||
+          c.cuenta.toLowerCase().includes(q) ||
+          c.tel?.includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          c.servicio?.toLowerCase().includes(q) ||
+          c.dir?.toLowerCase().includes(q) ||
+          c.rfc?.toLowerCase().includes(q);
+        const estMatch = !fe || c.estado === fe;
+        return match && estMatch;
+      });
+      list = sortList(list, sortClientes.col, sortClientes.asc);
+      const countEl = document.getElementById('cli-count');
+      if (countEl) countEl.textContent = list.length > 0 ? `${list.length} cliente(s)` : '';
+      if (!list.length) {
+        document.getElementById('cli-table').innerHTML = `<div class="empty"><i class="ti ti-users-off"></i><p>No hay clientes que coincidan con la búsqueda.</p><button class="btn btn-primary btn-sm" onclick="openEditor(null)"><i class="ti ti-plus"></i> Agregar primer cliente</button></div>`;
+        return;
+      }
+      const totalPages = Math.ceil(list.length / PAGE_SIZE);
+      if (pageClientes > totalPages) pageClientes = 1;
+      const paginated = list.slice((pageClientes - 1) * PAGE_SIZE, pageClientes * PAGE_SIZE);
+      document.getElementById('cli-table').innerHTML = `<div class="tbl-wrap"><table aria-label="Lista de clientes">
+    <thead><tr>
+      <th class="sortable" onclick="sortClientes={col:'cuenta',asc:sortClientes.col==='cuenta'?!sortClientes.asc:true};pageClientes=1;renderClientes()">Cuenta ${sortArrow(sortClientes, 'cuenta')}</th>
+      <th class="sortable" onclick="sortClientes={col:'nombre',asc:sortClientes.col==='nombre'?!sortClientes.asc:true};pageClientes=1;renderClientes()">Nombre ${sortArrow(sortClientes, 'nombre')}</th>
+      <th>Teléfono</th><th>Servicio</th><th>Frecuencia</th>
+      <th class="sortable" onclick="sortClientes={col:'monto',asc:sortClientes.col==='monto'?!sortClientes.asc:true};pageClientes=1;renderClientes()">Monto ${sortArrow(sortClientes, 'monto')}</th>
+      <th class="sortable" onclick="sortClientes={col:'proximoCobro',asc:sortClientes.col==='proximoCobro'?!sortClientes.asc:true};pageClientes=1;renderClientes()">Próx. cobro ${sortArrow(sortClientes, 'proximoCobro')}</th>
+      <th class="sortable" onclick="sortClientes={col:'estado',asc:sortClientes.col==='estado'?!sortClientes.asc:true};pageClientes=1;renderClientes()">Estado ${sortArrow(sortClientes, 'estado')}</th>
+      <th>Acciones</th>
+    </tr></thead>
+    <tbody>${paginated.map(c => {
+        const dDays = diffDays(c.proximoCobro);
+        const rowCls = c.estado === 'activo' && dDays < 0 ? 'row-vencido' : c.estado === 'activo' && dDays === 0 ? 'row-hoy' : '';
+        let dateBadge = '';
+        if (c.estado === 'activo') {
+          if (dDays < 0) {
+            dateBadge = `<br><span style="font-size:11px;color:var(--red);font-weight:700;display:inline-block;margin-top:2px"><i class="ti ti-alert-triangle"></i> Vencido hace ${Math.abs(dDays)} d</span>`;
+          } else if (dDays === 0) {
+            dateBadge = `<br><span style="font-size:11px;color:var(--amber);font-weight:700;display:inline-block;margin-top:2px"><i class="ti ti-clock"></i> ¡Toca Hoy!</span>`;
+          } else {
+            dateBadge = `<br><span style="font-size:11px;color:var(--text3);display:inline-block;margin-top:2px">En ${dDays} días</span>`;
+          }
+        }
+        return `<tr class="${rowCls}">
+      <td><span class="acct-badge">${c.cuenta}</span></td>
+      <td style="cursor:pointer;color:var(--blue);font-weight:600" onclick="openEditor('${c.id}')" title="Editar cliente">${escAttr(c.nombre)}</td>
+      <td style="color:var(--text2)">${escAttr(c.tel || '—')}</td>
+      <td style="color:var(--text2)">${escAttr(c.servicio || '—')}</td>
+      <td>${FLBL[c.freq]}</td>
+      <td>$${montoFinal(c).toLocaleString()}${c.descuento ? `<span style="font-size:11px;color:var(--amber);margin-left:4px">-${c.descuento}%</span>` : ''}</td>
+      <td>${fmtDate(c.proximoCobro)}${dateBadge}</td>
+      <td>${statusBadge(c)}</td>
+      <td>
+        <div style="display:flex;gap:5px;align-items:center">
+          <button class="btn btn-xs" onclick="openEditor('${c.id}')" title="Editar"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn btn-xs" onclick="verRecibo('${c.id}')" title="Imprimir recibo"><i class="ti ti-printer"></i></button>
+          ${(c.pagos || []).length ? `<button class="btn btn-xs b-info" onclick="verHistorial('${c.id}')" title="Ver historial de pagos"><i class="ti ti-history"></i> ${c.pagos.length}</button>` : ''}
+          ${c.tel ? `
+          <button class="btn btn-xs" onclick="enviarWhatsApp('${c.id}')" title="Enviar recordatorio por WhatsApp" style="background:#25d366;color:#fff;border-color:#25d366;padding:2px 6px">
+            <i class="ti ti-brand-whatsapp"></i>
+          </button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>`}).join('')}</tbody>
+  </table></div>`;
+      if (totalPages > 1) {
+        document.getElementById('cli-table').insertAdjacentHTML('beforeend', `<div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:var(--fs-sm)">
+      <button class="btn btn-xs" ${pageClientes === 1 ? 'disabled' : ''} onclick="pageClientes--;renderClientes()"><i class="ti ti-chevron-left"></i></button>
+      <span style="color:var(--text2)">Página ${pageClientes} de ${totalPages}</span>
+      <button class="btn btn-xs" ${pageClientes === totalPages ? 'disabled' : ''} onclick="pageClientes++;renderClientes()"><i class="ti ti-chevron-right"></i></button>
+    </div>`);
+      }
+      initTableResizers();
+    }
+
+    /* ── CALENDARIO ── */
+    function renderCal() {
+      document.getElementById('cal-title').textContent =
+        new Date(calY, calM, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
+      const first = new Date(calY, calM, 1).getDay();
+      const days = new Date(calY, calM + 1, 0).getDate();
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const ev = {};
+      clientes.filter(c => c.estado !== 'cancelado').forEach(c => {
+        const d = parseDate(c.proximoCobro);
+        if (d.getFullYear() === calY && d.getMonth() === calM) { const k = d.getDate(); if (!ev[k]) ev[k] = []; ev[k].push(c) }
+      });
+      let html = `<div class="cal-grid">`;
+      ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].forEach(d => { html += `<div class="cal-head">${d}</div>` });
+      for (let i = 0; i < first; i++)html += `<div class="cal-day empty" aria-hidden="true"></div>`;
+      for (let d = 1; d <= days; d++) {
+        const isTod = today.getDate() === d && today.getMonth() === calM && today.getFullYear() === calY;
+        html += `<div class="cal-day${isTod ? ' today' : ''}" ${isTod ? 'aria-label="Hoy"' : ''}><div class="cal-day-num">${d}</div>`;
+        (ev[d] || []).forEach(c => {
+          const dd = diffDays(c.proximoCobro);
+          const col = dd < 0 ? 'var(--red)' : dd === 0 ? 'var(--amber)' : 'var(--blue)';
+          const bg = dd < 0 ? 'var(--red-lt)' : dd === 0 ? 'var(--amber-lt)' : 'var(--blue-lt)';
+          html += `<div class="cal-dot" style="background:${bg};color:${col}" onclick="openEditor('${c.id}')" data-tip="${escAttr(`${c.cuenta} — ${c.nombre} — $${montoFinal(c).toLocaleString()}`)}" role="button" tabindex="0"><span class="cal-dot-text">${c.nombre.split(' ')[0]}</span></div>`;
+        });
+        html += `</div>`;
+      }
+      html += `</div>`;
+      document.getElementById('cal').innerHTML = html;
+    }
+
+    function chMonth(n) { calM += n; if (calM > 11) { calM = 0; calY++ } else if (calM < 0) { calM = 11; calY-- } renderCal() }
+
+    /* ── EDITOR MODAL ── */
+    function actualizarPreviewMonto() {
+      const m = Number(document.getElementById('f-monto').value) || 0;
+      const d = Number(document.getElementById('f-desc2').value) || 0;
+      const final = Math.round(m * (1 - d / 100));
+      const el = document.getElementById('monto-preview');
+      if (m > 0) {
+        el.style.display = 'block';
+        document.getElementById('monto-preview-val').textContent = '$' + final.toLocaleString() + ' MXN';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    function openEditor(id) {
+      editId = id;
+      const isNew = !id;
+      document.getElementById('f-serv-predef').value = '';
+      document.getElementById('modal-title').textContent = isNew ? 'Nuevo cliente' : 'Editar cliente';
+      document.getElementById('btn-del').style.display = isNew ? 'none' : 'inline-flex';
+      document.getElementById('btn-print-client').style.display = isNew ? 'none' : 'inline-flex';
+      document.getElementById('historial-section').style.display = isNew ? 'none' : 'block';
+
+      if (isNew) {
+        document.getElementById('f-cuenta').value = 'SEC-' + String(cuentaSeq + 1).padStart(4, '0');
+        ['f-nombre', 'f-tel', 'f-contacto-nombre', 'f-contacto-cel', 'f-email', 'f-rfc', 'f-dir', 'f-serv', 'f-desc', 'f-monto', 'f-notas'].forEach(x => document.getElementById(x).value = '');
+        document.getElementById('f-freq').value = 'mensual';
+        document.getElementById('f-estado').value = 'activo';
+        document.getElementById('f-desc2').value = '0';
+        document.getElementById('f-inicio').value = todayStr();
+        document.getElementById('f-prox').value = todayStr();
+        document.getElementById('hist-list').innerHTML = '';
+      } else {
+        const c = clientes.find(x => x.id === id);
+        document.getElementById('f-cuenta').value = c.cuenta;
+        document.getElementById('f-nombre').value = c.nombre;
+        document.getElementById('f-tel').value = c.tel || '';
+        document.getElementById('f-contacto-nombre').value = c.contactoNombre || '';
+        document.getElementById('f-contacto-cel').value = c.contactoCel || '';
+        document.getElementById('f-email').value = c.email || '';
+        document.getElementById('f-rfc').value = c.rfc || '';
+        document.getElementById('f-dir').value = c.dir || '';
+        document.getElementById('f-freq').value = c.freq;
+        document.getElementById('f-monto').value = c.monto;
+        document.getElementById('f-desc2').value = c.descuento || 0;
+        document.getElementById('f-serv').value = c.servicio || '';
+        document.getElementById('f-desc').value = c.desc || '';
+        document.getElementById('f-inicio').value = c.inicio || '';
+        document.getElementById('f-prox').value = c.proximoCobro;
+        document.getElementById('f-notas').value = c.notas || '';
+        document.getElementById('f-estado').value = c.estado || 'activo';
+        const pagos = c.pagos || [];
+        document.getElementById('hist-list').innerHTML = pagos.length
+          ? pagos.slice().reverse().map(p => `<div class="hist-row">
+          <span>${fmtDate(p.fecha)}</span>
+          <span style="color:var(--text2)">${c.servicio || 'Servicio'}</span>
+          <strong style="color:var(--green)">$${Number(p.monto).toLocaleString()}</strong>
+        </div>`).join('') +
+          `<div style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;font-weight:600">
+          Total pagado: $${pagos.reduce((a, p) => a + Number(p.monto), 0).toLocaleString()} MXN
+        </div>`
+          : `<div style="color:var(--text3);font-size:var(--fs-base)">Sin pagos registrados aún.</div>`;
+      }
+      actualizarPreviewMonto();
+      document.getElementById('modal-bg').style.display = 'flex';
+      // Focus al primer campo editable
+      setTimeout(() => {
+        const first = document.getElementById(editId ? 'f-estado' : 'f-nombre');
+        if (first) first.focus();
+      }, 50);
+    }
+
+    function closeModal() {
+      document.getElementById('modal-bg').style.display = 'none';
+      editId = null;
+    }
+
+    function saveCliente() {
+      const nombre = document.getElementById('f-nombre').value.trim();
+      const monto = document.getElementById('f-monto').value;
+      const prox = document.getElementById('f-prox').value;
+      if (!nombre) { showToast('⚠ El nombre es obligatorio'); document.getElementById('f-nombre').focus(); return }
+      if (!monto || Number(monto) <= 0) { showToast('⚠ El monto debe ser mayor a 0'); document.getElementById('f-monto').focus(); return }
+      if (!prox) { showToast('⚠ La fecha de cobro es obligatoria'); document.getElementById('f-prox').focus(); return }
+
+      // VALIDACIÓN DE NÚMERO DE CUENTA (Manual o Autogenerado)
+      let cuenta = document.getElementById('f-cuenta').value.trim();
+      if (!cuenta) {
+        // Generar un número de cuenta único usando nextCuenta()
+        do {
+          cuenta = nextCuenta();
+        } while (clientes.some(c => c.cuenta.toLowerCase() === cuenta.toLowerCase()));
+      } else {
+        // Verificar que no esté duplicado con otro cliente
+        const duplicado = clientes.find(c => c.cuenta.toLowerCase() === cuenta.toLowerCase() && c.id !== editId);
+        if (duplicado) {
+          showToast(`⚠ El N° de cuenta "${cuenta}" ya está asignado a ${duplicado.nombre}`);
+          document.getElementById('f-cuenta').focus();
+          return;
+        }
+      }
+
+      if (prox < todayStr()) {
+        showConfirm('Fecha anterior a hoy', 'La fecha de cobro es anterior a hoy. ¿Deseas continuar?', 'Continuar', false).then(continuar => {
+          if (!continuar) { document.getElementById('f-prox').focus(); return }
+          saveClienteData(nombre, monto, prox, cuenta);
+        });
+        return;
+      }
+      saveClienteData(nombre, monto, prox, cuenta);
+    }
+
+    function saveClienteData(nombre, monto, prox, cuenta) {
+      const data = {
+        id: editId || (Date.now().toString()),
+        cuenta: cuenta,
+        nombre,
+        tel: document.getElementById('f-tel').value.trim(),
+        contactoNombre: document.getElementById('f-contacto-nombre').value.trim(),
+        contactoCel: document.getElementById('f-contacto-cel').value.trim(),
+        email: document.getElementById('f-email').value.trim(),
+        rfc: document.getElementById('f-rfc').value.trim(),
+        dir: document.getElementById('f-dir').value.trim(),
+        freq: document.getElementById('f-freq').value,
+        monto: Number(monto),
+        descuento: Number(document.getElementById('f-desc2').value) || 0,
+        servicio: document.getElementById('f-serv').value.trim(),
+        desc: document.getElementById('f-desc').value.trim(),
+        inicio: document.getElementById('f-inicio').value,
+        proximoCobro: prox,
+        notas: document.getElementById('f-notas').value.trim(),
+        estado: document.getElementById('f-estado').value,
+        pagos: editId ? (clientes.find(c => c.id === editId)?.pagos || []) : []
+      };
+
+      if (editId) { const i = clientes.findIndex(c => c.id === editId); clientes[i] = data }
+      else { clientes.push(data) }
+      saveData(); closeModal();
+      renderDash(); renderClientes(); renderPend(); renderCal();
+    }
+
+    async function deleteFromModal() {
+      if (!editId) return;
+      const c = clientes.find(x => x.id === editId);
+      const ok = await showConfirm('Eliminar cliente', `¿Eliminar a ${c.nombre} (${c.cuenta})? Esta acción no se puede deshacer.`);
+      if (!ok) return;
+      clientes = clientes.filter(x => x.id !== editId);
+      saveData(); closeModal();
+      renderDash(); renderClientes(); renderPend(); renderCal();
+    }
+
+    /* ── REGISTRAR PAGO ── */
+    async function registrarPago(id) {
+      const c = clientes.find(x => x.id === id); if (!c) return;
+      const mf = montoFinal(c);
+      const ok = await showConfirm('Registrar pago', `¿Registrar $${mf.toLocaleString()} MXN de ${c.nombre} (${c.cuenta})?`, 'Registrar', false);
+      if (!ok) return;
+      const hoy = new Date();
+      const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const fechaPago = fmt(hoy);
+      const periodoDesde = c.proximoCobro || fechaPago;
+      const periodo = periodoCubierto(periodoDesde, c.freq);
+      const siguienteCobro = addPeriodo(periodoDesde, c.freq);
+      c.pagos = c.pagos || [];
+      const numRec = 'REC-' + String(Date.now()).slice(-6);
+      c.pagos.push({ fecha: fechaPago, monto: mf, recibo: numRec, periodoDesde: periodo.desde, periodoHasta: periodo.hasta });
+      c.proximoCobro = siguienteCobro;
+      saveData(); renderDash(); renderPend(); renderCal();
+      verRecibo(id, fechaPago);
+    }
+
+    /* ── RECIBO ── */
+    function verRecibo(id, fecha) {
+      const c = clientes.find(x => x.id === id); if (!c) return;
+      const ultimoPago = (c.pagos || []).slice(-1)[0];
+      const pagoActual = fecha ? (c.pagos || []).slice().reverse().find(p => p.fecha === fecha) : ultimoPago;
+      const mf = pagoActual ? Number(pagoActual.monto) : montoFinal(c);
+      const num = (pagoActual?.recibo) || (ultimoPago?.recibo) || ('REC-' + String(Math.floor(Math.random() * 90000) + 10000));
+      const fechaDesde = pagoActual?.periodoDesde || c.proximoCobro || fecha || todayStr();
+      const fechaHasta = pagoActual?.periodoHasta || periodoCubierto(fechaDesde, c.freq).hasta;
+      const periodoStr = `${fmtDate(fechaDesde)} al ${fmtDate(fechaHasta)}`;
+      const fechaRecibo = fecha || (pagoActual ? pagoActual.fecha : todayStr());
+
+      const html = `
+        <div style="text-align: center; margin-bottom: 10px;">
+          ${empresaData.logo ? `
+            <div style="margin-bottom: 6px;">
+              <img src="${empresaData.logo}" style="max-height: 55px; max-width: 160px; object-fit: contain; filter: grayscale(100%) contrast(130%);">
+            </div>
+          ` : ''}
+          <div style="font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">${escAttr(empresaData.nombre || 'DETEKTOR')}</div>
+          ${empresaData.rfc ? `<div style="font-size: 12px; color: #000; font-weight: 600; margin-top: 2px;">RFC: ${escAttr(empresaData.rfc)}</div>` : ''}
+          ${empresaData.dir ? `<div style="font-size: 11px; color: #000; font-weight: 600; margin-top: 2px; line-height: 1.3; word-break: break-word; white-space: normal; padding: 0 5px;">${escAttr(empresaData.dir)}</div>` : ''}
+          <div style="font-size: 12px; font-weight: bold; margin-top: 8px; border: 1.5px solid #000; display: inline-block; padding: 2px 10px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Recibo de Pago</div>
+        </div>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <table style="width: 100%; margin-bottom: 6px;">
+          <tr>
+            <td style="font-weight: bold; width: 40%;">Recibo:</td>
+            <td style="text-align: right; font-weight: bold;">${num}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Fecha:</td>
+            <td style="text-align: right; font-weight: bold;">${fmtDate(fechaRecibo)}</td>
+          </tr>
+        </table>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <div style="margin-bottom: 6px; line-height: 1.4;">
+          <div style="margin-bottom: 2px;"><strong>Cuenta:</strong> ${c.cuenta}</div>
+          <div style="margin-bottom: 2px;"><strong>Cliente:</strong> ${c.nombre}</div>
+          <div style="margin-bottom: 2px;"><strong>Teléfono:</strong> ${c.tel || '—'}</div>
+          ${c.rfc ? `<div style="margin-bottom: 2px;"><strong>RFC:</strong> ${c.rfc}</div>` : ''}
+          <div style="word-break: break-word; white-space: normal;"><strong>Dirección:</strong> ${c.dir || '—'}</div>
+        </div>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <div style="margin-bottom: 6px;">
+          <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.5px;">Concepto del Servicio</div>
+          <table style="width: 100%;">
+            <tr>
+              <td style="text-align: left; vertical-align: top; padding-right: 8px; line-height: 1.3;">
+                <strong>${c.servicio || 'Servicio de seguridad'}</strong>
+                ${c.desc ? `<br><span style="font-size: 11px; font-weight: 600;">${c.desc}</span>` : ''}
+                <br><span style="font-size: 11px;">Freq: ${FLBL[c.freq]}</span>
+                <br><span style="font-size: 11px;">Periodo: ${periodoStr}</span>
+              </td>
+              <td style="text-align: right; vertical-align: top; font-weight: bold; white-space: nowrap;">
+                $${Number(c.monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+          </table>
+        </div>
+        
+        <table style="width: 100%; margin-top: 6px;">
+          <tr>
+            <td style="text-align: right; width: 70%; font-weight: bold;">Monto Base:</td>
+            <td style="text-align: right; font-weight: bold;">$${Number(c.monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+          ${c.descuento ? `
+          <tr>
+            <td style="text-align: right; font-weight: bold;">Descuento (${c.descuento}%):</td>
+            <td style="text-align: right; font-weight: bold;">-$${(c.monto * c.descuento / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+          ` : ''}
+          <tr>
+            <td colspan="2" style="padding: 4px 0;"><div class="ticket-divider-dotted"></div></td>
+          </tr>
+          <tr>
+            <td style="text-align: right; font-weight: bold; font-size: 15px;">TOTAL:</td>
+            <td style="text-align: right; font-weight: bold; font-size: 15px;">$${mf.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</td>
+          </tr>
+        </table>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <div style="text-align: center; margin-bottom: 10px;">
+          <div style="font-weight: bold; margin-bottom: 2px; font-size: 13px;">Próximo cobro: ${fmtDate(c.proximoCobro)}</div>
+          ${c.notas ? `<div style="font-size: 11px; font-weight: 600; margin-top: 4px; word-break: break-word;">Nota: ${c.notas}</div>` : ''}
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+          <div style="border-top: 1.5px solid #000; width: 75%; margin: 0 auto 4px auto;"></div>
+          <div style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Firma de conformidad</div>
+          <div style="font-size: 11px; font-weight: 600;">Recibí conforme</div>
+        </div>
+        
+        <div style="margin-top: 25px; text-align: center; font-size: 12px; font-weight: bold; letter-spacing: 1px;">
+          ¡GRACIAS POR SU PREFERENCIA!
+        </div>
+      `;
+      activeClientForShare = c;
+      activeShareFilename = `recibo_${c.cuenta}_${num}.pdf`;
+      document.getElementById('recibo-txt').innerHTML = html;
+      document.getElementById('modal-recibo').style.display = 'flex';
+    }
+
+    async function enviarReciboPorWhatsApp() {
+      if (!activeClientForShare) {
+        showToast('⚠ No hay cliente seleccionado para compartir');
+        return;
+      }
+      
+      let tel = (activeClientForShare.contactoCel || activeClientForShare.tel || '').replace(/\D/g, '');
+      if (!tel) {
+        showToast('⚠ El cliente no tiene teléfono ni celular registrado');
+        return;
+      }
+      if (tel.length === 10) tel = '52' + tel; // México por defecto
+      
+      const element = document.getElementById('recibo-txt');
+      
+      showToast('Generando PDF del recibo...');
+      
+      try {
+        // Generar PDF en memoria (Blob)
+        const pdfBlob = await html2pdf()
+          .set({
+            margin: [6, 6, 6, 6],
+            filename: activeShareFilename,
+            html2canvas: { 
+              scale: 2,
+              useCORS: true,
+              logging: false
+            },
+            jsPDF: { unit: 'mm', format: [80, 220], orientation: 'portrait' }
+          })
+          .from(element)
+          .outputPdf('blob');
+          
+        const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        // Android: Web Share API funciona perfecto (evitar en iOS y escritorio)
+        if (!esIOS && navigator.share && navigator.canShare) {
+          const file = new File([pdfBlob], activeShareFilename, { type: 'application/pdf' });
+          if (navigator.canShare({ files: [file] })) {
+            const nombreSaludo = activeClientForShare.contactoNombre || activeClientForShare.nombre;
+            await navigator.share({
+              files: [file],
+              title: 'Recibo de Pago',
+              text: `Hola ${nombreSaludo}, adjunto tu recibo de pago.`
+            });
+            showToast('✓ Recibo compartido por WhatsApp');
+            return;
+          }
+        }
+        
+        // Fallback: Descarga directa y apertura de chat en WhatsApp
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = activeShareFilename;
+        a.click();
+        
+        showToast('✓ PDF descargado. Abriendo WhatsApp...');
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          const nombreSaludo = activeClientForShare.contactoNombre || activeClientForShare.nombre;
+          const msg = `Hola ${nombreSaludo}, adjunto tu recibo de pago en formato PDF.`;
+          window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+        }, 1500);
+      } catch (error) {
+        console.error(error);
+        showToast('⚠ Error al generar el PDF del recibo');
+      }
+    }
+
+    function verHistorial(id) {
+      const c = clientes.find(x => x.id === id); if (!c) return;
+      const pagos = (c.pagos || []).slice().reverse();
+      const total = pagos.reduce((a, p) => a + Number(p.monto), 0);
+      
+      let tableRowsHtml = '';
+      if (pagos.length) {
+        tableRowsHtml = pagos.map(p => `
+          <tr style="border-bottom: 1px dotted #ccc;">
+            <td style="padding: 6px 0; text-align: left;">${fmtDate(p.fecha)}</td>
+            <td style="padding: 6px 0; text-align: left;">${p.recibo || '—'}</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: var(--green);">$${Number(p.monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        `).join('');
+      } else {
+        tableRowsHtml = `
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 12px 0; color: #666; font-style: italic;">Sin pagos registrados aún.</td>
+          </tr>
+        `;
+      }
+
+      const html = `
+        <div style="text-align: center; margin-bottom: 10px;">
+          ${empresaData.logo ? `
+            <div style="margin-bottom: 6px;">
+              <img src="${empresaData.logo}" style="max-height: 55px; max-width: 160px; object-fit: contain; filter: grayscale(100%) contrast(130%);">
+            </div>
+          ` : ''}
+          <div style="font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">${escAttr(empresaData.nombre || 'DETEKTOR')}</div>
+          ${empresaData.rfc ? `<div style="font-size: 12px; color: #000; font-weight: 600; margin-top: 2px;">RFC: ${escAttr(empresaData.rfc)}</div>` : ''}
+          ${empresaData.dir ? `<div style="font-size: 11px; color: #000; font-weight: 600; margin-top: 2px; line-height: 1.3; word-break: break-word; white-space: normal; padding: 0 5px;">${escAttr(empresaData.dir)}</div>` : ''}
+          <div style="font-size: 12px; font-weight: bold; margin-top: 8px; border: 1.5px solid #000; display: inline-block; padding: 2px 10px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Historial de Pagos</div>
+        </div>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <div style="margin-bottom: 6px; line-height: 1.4;">
+          <div style="margin-bottom: 2px;"><strong>Cuenta:</strong> ${c.cuenta}</div>
+          <div style="margin-bottom: 2px;"><strong>Cliente:</strong> ${c.nombre}</div>
+        </div>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <table style="width: 100%; margin-bottom: 6px;">
+          <thead>
+            <tr style="border-bottom: 1.5px solid #000;">
+              <th style="text-align: left; font-weight: bold; font-size: 11px; width: 40%;">FECHA</th>
+              <th style="text-align: left; font-weight: bold; font-size: 11px; width: 35%;">RECIBO</th>
+              <th style="text-align: right; font-weight: bold; font-size: 11px; width: 25%;">MONTO</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+        
+        <div class="ticket-divider-dashed"></div>
+        
+        <table style="width: 100%;">
+          <tr>
+            <td style="text-align: right; font-weight: bold; font-size: 13px; width: 60%;">TOTAL PAGADO:</td>
+            <td style="text-align: right; font-weight: bold; font-size: 13px; color: #000;">$${total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</td>
+          </tr>
+        </table>
+      `;
+      activeClientForShare = c;
+      activeShareFilename = `historial_${c.cuenta}.pdf`;
+      document.getElementById('recibo-txt').innerHTML = html;
+      document.getElementById('modal-recibo').style.display = 'flex';
+    }
+
+    function imprimirRecibo() {
+      // Cerrar el modal de recibo inmediatamente para evitar doble previsualización
+      document.getElementById('modal-recibo').style.display = 'none';
+
+      const htmlContent = document.getElementById('recibo-txt').innerHTML;
+      
+      // Obtener o crear un iframe oculto para la impresión silenciosa
+      let iframe = document.getElementById('print-iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'print-iframe';
+        iframe.style.position = 'absolute';
+        iframe.style.left = '-9999px';
+        iframe.style.top = '-9999px';
+        iframe.style.width = '300px';
+        iframe.style.height = '300px';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+      }
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8">
+    <title>Impresión de Ticket</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        background: #fff;
+        font-family: 'Courier New', Courier, monospace;
+        color: #000;
+        padding: 0;
+      }
+      
+      .ticket-body {
+        width: 72mm;
+        padding: 0px 4px;
+        font-size: 13px;
+        line-height: 1.4;
+        box-sizing: border-box;
+      }
+
+      .ticket-body img {
+        max-width: 100%;
+        height: auto;
+        display: inline-block;
+        filter: grayscale(100%) contrast(140%);
+      }
+
+      .ticket-body table {
+        width: 100%;
+        border-collapse: collapse;
+        background: transparent;
+        font-size: 13px;
+      }
+
+      .ticket-body th, .ticket-body td {
+        padding: 4px 0;
+        border: none;
+        background: transparent !important;
+        color: #000000 !important;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .ticket-divider-dashed {
+        border-top: 1.5px dashed #000000;
+        margin: 8px 0;
+        height: 0;
+      }
+
+      .ticket-divider-dotted {
+        border-top: 1.5px dotted #000000;
+        margin: 6px 0;
+        height: 0;
+      }
+      
+      @media print {
+        @page {
+          size: 72mm auto;
+          margin: 0;
+        }
+      }
+    </style>
+  </head><body>
+    <div class="ticket-body">
+      ${htmlContent}
+    </div>
+    <script>
+      // Esperar a que la imagen y los recursos se carguen antes de imprimir
+      window.onload = function() {
+        setTimeout(function() {
+          window.print();
+        }, 200);
+      };
+    <\/script>
+  </body></html>`);
+      doc.close();
+    }
+
+    /* ── IMPRIMIR FICHA CLIENTE ── */
+    function imprimirFichaCliente() {
+      if (!editId) return;
+      const c = clientes.find(x => x.id === editId); if (!c) return;
+      const pagos = c.pagos || [];
+      const totalPagado = pagos.reduce((a, p) => a + Number(p.monto), 0);
+      const histHtml = pagos.length
+        ? pagos.slice().reverse().map(p => `<tr><td>${fmtDate(p.fecha)}</td><td>${c.servicio || 'Servicio'}</td><td style="font-weight:600;color:#1e6b2e">$${Number(p.monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>`).join('')
+        : `<tr><td colspan="3" style="color:#666;text-align:center;padding:12px">Sin pagos registrados</td></tr>`;
+
+      const w = window.open('', '_blank', 'width=750,height=860');
+      w.document.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8">
+    <title>Ficha de Cliente — ${c.nombre}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@600&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'IBM Plex Sans',sans-serif;font-size:11pt;padding:32px;color:#111;background:#fff;line-height:1.5}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a4fa0;padding-bottom:12px;margin-bottom:20px}
+      .brand{font-size:20pt;font-weight:700;color:#1a4fa0;letter-spacing:1px}
+      .brand-sub{font-size:10pt;color:#555;font-weight:500}
+      .acct{font-family:'IBM Plex Mono',monospace;font-size:14pt;font-weight:600;background:#eef4fc;color:#1a4fa0;padding:6px 14px;border-radius:6px;border:1px solid #d0e1f7}
+      h2{font-size:12pt;font-weight:700;margin:20px 0 10px;border-bottom:1.5px solid #ddd;padding-bottom:4px;text-transform:uppercase;letter-spacing:.05em;color:#1a4fa0}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-bottom:10px}
+      .kv{display:flex;flex-direction:column;gap:2px}
+      .k{font-size:8.5pt;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em}
+      .v{font-size:10.5pt;font-weight:500;color:#111}
+      table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10pt}
+      th{background:#f4f3f0;padding:8px 12px;text-align:left;font-weight:700;font-size:8.5pt;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:2px solid #ddd}
+      td{padding:8px 12px;border-bottom:1px solid #e8e6e0}
+      tr:last-child td{border-bottom:none}
+      .total{text-align:right;font-weight:700;margin-top:10px;font-size:11pt;color:#1e6b2e}
+      .status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.02em;
+              background:${c.estado === 'activo' ? '#e2f7e7' : c.estado === 'suspendido' ? '#fff3cd' : '#f4f3f0'};
+              color:${c.estado === 'activo' ? '#1b5e20' : c.estado === 'suspendido' ? '#856404' : '#666'}}
+      .no-print{margin-bottom:20px;padding:10px 20px;font-family:'IBM Plex Sans',sans-serif;font-size:11pt;font-weight:600;cursor:pointer;background:#1a4fa0;color:#fff;border:none;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:background 0.2s}
+      .no-print:hover{background:#0f3b7a}
+      
+      .signature-block {
+        margin-top: 50px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+        font-size: 10.5pt;
+        page-break-inside: avoid;
+      }
+      .signature-line {
+        border-top: 1.5px solid #666;
+        padding-top: 8px;
+        text-align: center;
+        color: #555;
+        font-weight: 500;
+      }
+
+      @media print{
+        .no-print{display:none}
+        body{padding:0}
+        @page {
+          margin: 15mm;
+        }
+      }
+    </style>
+  </head><body>
+    <button class="no-print" onclick="window.print()">
+      🖨 Imprimir ficha de cliente
+    </button>
+    <div class="header">
+      <div style="display:flex; gap:16px; align-items:center;">
+        ${empresaData.logo ? `<img src="${empresaData.logo}" style="max-height: 50px; max-width: 150px; object-fit: contain; border-radius: 4px;">` : ''}
+        <div>
+          <div class="brand">${escAttr(empresaData.nombre || 'DETEKTOR')}</div>
+          <div class="brand-sub">${empresaData.rfc ? `RFC: ${escAttr(empresaData.rfc)} | ` : ''}Ficha de Cliente</div>
+          <div style="font-size:9pt;color:#888;margin-top:4px">Impreso: ${fmtDate(todayStr())}</div>
+        </div>
+      </div>
+      <div class="acct">${c.cuenta}</div>
+    </div>
+
+    <h2>Datos del cliente</h2>
+    <div class="grid">
+      <div class="kv"><span class="k">Nombre</span><span class="v">${c.nombre}</span></div>
+      <div class="kv"><span class="k">Estado</span><span class="v"><span class="status">${c.estado.charAt(0).toUpperCase() + c.estado.slice(1)}</span></span></div>
+      <div class="kv"><span class="k">Teléfono</span><span class="v">${c.tel || '—'}</span></div>
+      <div class="kv"><span class="k">Correo electrónico</span><span class="v">${c.email || '—'}</span></div>
+      <div class="kv"><span class="k">RFC / Razón social</span><span class="v">${c.rfc || '—'}</span></div>
+      <div class="kv" style="grid-column:1/-1"><span class="k">Dirección</span><span class="v">${c.dir || '—'}</span></div>
+    </div>
+
+    <h2>Servicio y cobro</h2>
+    <div class="grid">
+      <div class="kv"><span class="k">Tipo de servicio</span><span class="v">${c.servicio || '—'}</span></div>
+      <div class="kv"><span class="k">Equipo / descripción</span><span class="v">${c.desc || '—'}</span></div>
+      <div class="kv"><span class="k">Frecuencia</span><span class="v">${FLBL[c.freq]}</span></div>
+      <div class="kv"><span class="k">Monto</span><span class="v">$${Number(c.monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN${c.descuento ? ' (−' + c.descuento + '% dto.)' : ''}</span></div>
+      <div class="kv"><span class="k">Monto final</span><span class="v" style="font-weight:700;font-size:12pt">$${montoFinal(c).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</span></div>
+      <div class="kv"><span class="k">Inicio contrato</span><span class="v">${fmtDate(c.inicio)}</span></div>
+      <div class="kv"><span class="k">Próximo cobro</span><span class="v" style="font-weight:700;color:#1a4fa0">${fmtDate(c.proximoCobro)}</span></div>
+    </div>
+    ${c.notas ? `<div class="kv" style="margin-top:10px;grid-column:1/-1"><span class="k">Notas</span><span class="v" style="white-space:normal;word-break:break-word;">${c.notas}</span></div>` : ''}
+
+    <h2>Historial de pagos</h2>
+    <table>
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Importe</th></tr></thead>
+      <tbody>${histHtml}</tbody>
+    </table>
+    ${pagos.length ? `<div class="total">Total pagado: $${totalPagado.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</div>` : ''}
+
+    <div class="signature-block">
+      <div class="signature-line">Firma del cliente</div>
+      <div class="signature-line">Firma del cobrador</div>
+    </div>
+  </body></html>`);
+      w.document.close();
+      setTimeout(() => w.print(), 400);
+    }
+
+    /* ── CSV EXPORT / IMPORT ── */
+    function exportCSV() {
+      const hdr = 'N° Cuenta,Nombre,Teléfono,Email,RFC,Dirección,Servicio,Equipo,Frecuencia,Monto,Descuento%,Inicio Contrato,Próximo Cobro,Estado,Notas,Total Pagado,Num Pagos\n';
+      const rows = clientes.map(c => [c.cuenta, c.nombre, c.tel, c.email, c.rfc, c.dir, c.servicio, c.desc, c.freq, c.monto, c.descuento || 0, c.inicio, c.proximoCobro, c.estado, c.notas, (c.pagos || []).reduce((a, p) => a + Number(p.monto), 0), (c.pagos || []).length]
+        .map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF' + hdr + rows], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'clientes_seguridad.csv'; a.click();
+      showToast('✓ CSV exportado');
+    }
+
+    function parseCSVRows(text) {
+      const rows = [];
+      let row = [], cell = '', inQuotes = false;
+      text = text.replace(/^\uFEFF/, '');
+      const firstLine = text.split(/\r?\n/, 1)[0] || '';
+      const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (ch === '"') {
+          if (inQuotes && next === '"') { cell += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === delimiter && !inQuotes) {
+          row.push(cell.trim()); cell = '';
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+          if (ch === '\r' && next === '\n') i++;
+          row.push(cell.trim());
+          if (row.some(v => v !== '')) rows.push(row);
+          row = []; cell = '';
+        } else {
+          cell += ch;
+        }
+      }
+      row.push(cell.trim());
+      if (row.some(v => v !== '')) rows.push(row);
+      return rows;
+    }
+
+    function normHeader(s) {
+      return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9%]+/g, ' ').trim();
+    }
+
+    function makeHeaderMap(header) {
+      const map = {};
+      header.forEach((h, i) => { map[normHeader(h)] = i });
+      return map;
+    }
+
+    function cellByNames(row, map, names, fallback) {
+      for (const name of names) {
+        const idx = map[normHeader(name)];
+        if (idx !== undefined) return row[idx] || '';
+      }
+      return row[fallback] || '';
+    }
+
+    function normalizeImportDate(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const datePart = raw.split(/\s+/)[0];
+      let m = datePart.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+      m = datePart.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+      if (m) {
+        const y = m[3].length === 2 ? '20' + m[3] : m[3];
+        return `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+      }
+      return raw;
+    }
+
+    function normalizeMoney(value) {
+      return Number(String(value || '').replace(/[$,\s]/g, '')) || 0;
+    }
+
+    function importCSV(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const rows = parseCSVRows(ev.target.result);
+        if (rows.length < 2) { showToast('⚠ CSV sin datos'); return; }
+        const header = rows[0];
+        const map = makeHeaderMap(header);
+        let imp = 0, omitidos = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const v = rows[i];
+          const cuenta = cellByNames(v, map, ['N° Cuenta', 'No Cuenta', 'Numero Cuenta', 'Cuenta'], 0);
+          const nombre = cellByNames(v, map, ['Nombre', 'Cliente', 'Nombre completo'], 1);
+          if (!nombre) { omitidos++; continue; }
+          const tel = cellByNames(v, map, ['Teléfono', 'Telefono', 'Tel'], 2);
+          const email = cellByNames(v, map, ['Email', 'Correo', 'Correo electrónico'], 3);
+          const rfc = cellByNames(v, map, ['RFC', 'RFC / Razón social', 'Razon social'], 4);
+          const dir = cellByNames(v, map, ['Dirección', 'Direccion', 'Domicilio'], 5);
+          const servicio = cellByNames(v, map, ['Servicio', 'Tipo de servicio'], 6);
+          const desc = cellByNames(v, map, ['Equipo', 'Descripción', 'Descripcion', 'Equipo / descripción'], 7);
+          const freqRaw = cellByNames(v, map, ['Frecuencia'], 8).toLowerCase();
+          const freq = ['mensual', 'trimestral', 'semestral', 'anual'].includes(freqRaw) ? freqRaw : 'mensual';
+          const monto = normalizeMoney(cellByNames(v, map, ['Monto', 'Monto MXN'], 9));
+          const descuento = normalizeMoney(cellByNames(v, map, ['Descuento%', 'Descuento', 'Descuento %'], 10));
+          const inicio = normalizeImportDate(cellByNames(v, map, ['Inicio Contrato', 'Fecha inicio contrato', 'Inicio'], 11));
+          const proximoCobro = normalizeImportDate(cellByNames(v, map, ['Próximo Cobro', 'Proximo Cobro', 'Siguiente pago', 'Próxima fecha de cobro'], 12)) || todayStr();
+          const estadoRaw = cellByNames(v, map, ['Estado', 'Estado del contrato'], 13).toLowerCase();
+          const estado = ['activo', 'suspendido', 'cancelado'].includes(estadoRaw) ? estadoRaw : 'activo';
+          const notas = cellByNames(v, map, ['Notas', 'Observaciones'], 14);
+          const existe = clientes.find(c => (cuenta && c.cuenta === cuenta) || c.nombre.toLowerCase() === nombre.toLowerCase());
+          if (!existe) {
+            clientes.push({ id: Date.now().toString() + i, cuenta: cuenta || nextCuenta(), nombre, tel, email, rfc, dir, servicio, desc, freq, monto, descuento, inicio, proximoCobro, estado, notas, pagos: [] });
+            imp++;
+          }
+        }
+        saveData();
+        showToast(`✓ ${imp} importados${omitidos ? `, ${omitidos} omitidos` : ''}`);
+        renderDash(); renderClientes(); renderPend(); renderCal();
+      };
+      r.readAsText(file, 'UTF-8');
+      e.target.value = '';
+    }
+
+    /* ── KEYBOARD: ESC para cerrar modales ── */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('modal-confirm').style.display !== 'none')
+          _confirmCancel && _confirmCancel();
+        else if (document.getElementById('modal-recibo').style.display !== 'none')
+          document.getElementById('modal-recibo').style.display = 'none';
+        else if (document.getElementById('modal-bg').style.display !== 'none')
+          closeModal();
+      }
+    });
+
+    /* ── INIT ── */
+    loadData();
+    initServiciosCatalog();
+    initIngresosDates();
+    renderDash();
+  </script>
+</body>
+
+</html>
