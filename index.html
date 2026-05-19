@@ -2098,10 +2098,6 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
         return;
       }
       
-      empresaData.nombre = nombre;
-      empresaData.rfc = rfc;
-      empresaData.dir = dir;
-      
       const supaUrl = document.getElementById('f-supabase-url').value.trim();
       const supaKey = document.getElementById('f-supabase-key').value.trim();
       
@@ -2121,14 +2117,47 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
         localStorage.removeItem('sec_supa_key');
       }
       
+      // Si la conexión cambió/se configuró por primera vez, intentamos cargar los datos ya existentes en Supabase
+      let hasCloudConfig = false;
+      if (supaChanged && isSupaEnabled()) {
+        try {
+          const cfgRows = await supaGet('config', 'select=key,value');
+          if (cfgRows) {
+            const emp = cfgRows.find(r => r.key === 'empresa');
+            if (emp) {
+              empresaData = emp.value;
+              hasCloudConfig = true;
+            }
+            const svc = cfgRows.find(r => r.key === 'servicios');
+            if (svc) serviciosPredefinidos = svc.value;
+            const seq = cfgRows.find(r => r.key === 'seq');
+            if (seq) cuentaSeq = seq.value;
+          }
+        } catch (e) {
+          console.error("Error al recuperar configuración previa de la nube:", e);
+        }
+      }
+      
+      // Si NO encontramos configuración previa en la nube, aplicamos los datos locales/del formulario
+      if (!hasCloudConfig) {
+        empresaData.nombre = nombre;
+        empresaData.rfc = rfc;
+        empresaData.dir = dir;
+      }
+      
       try {
         if (isSupaEnabled()) {
-          const ok = await supaUpsert('config', { key: 'empresa', value: empresaData });
-          if (!ok) {
-            localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
-            showToast('⚠ Guardado local (error nube)');
+          // Sólo guardamos si es una base de datos nueva o si el usuario editó los campos locales
+          if (!hasCloudConfig) {
+            const ok = await supaUpsert('config', { key: 'empresa', value: empresaData });
+            if (!ok) {
+              localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
+              showToast('⚠ Guardado local (error nube)');
+            } else {
+              showToast('✓ Datos de empresa guardados en nube');
+            }
           } else {
-            showToast('✓ Datos de empresa guardados en nube');
+            showToast('✓ Conectado a base de datos existente');
           }
         } else {
           localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
