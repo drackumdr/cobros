@@ -1769,22 +1769,6 @@
     function nextCuenta() { cuentaSeq++; return 'SEC-' + String(cuentaSeq).padStart(4, '0') }
 
  
-    /* ── DEMO DATA ── */
-    function seedDemo() {
-      const t = new Date();
-      const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const ago = n => { const d = new Date(t); d.setDate(d.getDate() - n); return fmt(d) };
-      const fwd = n => { const d = new Date(t); d.setDate(d.getDate() + n); return fmt(d) };
-      clientes = [
-        { id: '1', cuenta: 'SEC-1001', nombre: 'Carlos Mendoza', tel: '614-123-4567', email: 'carlos@gmail.com', rfc: '', dir: 'Col. Centro, Chihuahua', freq: 'mensual', monto: 200, descuento: 0, inicio: ago(180), proximoCobro: ago(5), servicio: 'Monitoreo de Alarma Residencial', desc: 'Panel DSC 1832', notas: 'Paga en efectivo', estado: 'activo', pagos: [] },
-        { id: '2', cuenta: 'SEC-1002', nombre: 'Ana Flores', tel: '614-234-5678', email: '', rfc: 'FOAA850212', dir: 'Fracc. Las Quintas', freq: 'mensual', monto: 350, descuento: 0, inicio: ago(90), proximoCobro: fwd(2), servicio: 'Monitoreo de Alarma Residencial', desc: 'Panel 585', notas: '', estado: 'activo', pagos: [{ fecha: ago(30), monto: 350 }] },
-        { id: '3', cuenta: 'SEC-1003', nombre: 'Roberto Solis', tel: '614-345-6789', email: 'rsolis@empresa.com', rfc: '', dir: 'Col. San Felipe', freq: 'trimestral', monto: 450, descuento: 10, inicio: ago(270), proximoCobro: fwd(6), servicio: 'Monitoreo de Alarma Residencial', desc: 'Casa de la abuelita', notas: '10% descuento flotilla', estado: 'activo', pagos: [{ fecha: ago(91), monto: 450 }] },
-        { id: '4', cuenta: 'SEC-1004', nombre: 'Empresa XYZ', tel: '614-456-7890', email: 'quien@empresa.com', rfc: 'XYZ123456', dir: 'Fracc. Las Palmas', freq: 'anual', monto: 1000, descuento: 15, inicio: ago(365), proximoCobro: fwd(12), servicio: 'Monitoreo de Alarma Residencial', desc: 'Sistema completo', notas: '15% descuento anual', estado: 'activo', pagos: [{ fecha: ago(30), monto: 1000 }] }
-      ];
-      cuentaSeq = 1005;
-      saveData();
-    }
-    
 
     /* ── UTILS ── */
     function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
