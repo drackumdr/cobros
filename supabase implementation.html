@@ -1140,7 +1140,6 @@
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <!-- Control de tamaño de letra -->
-        <div id="db-indicator" style="font-size:11px;display:flex;align-items:center;gap:4px;"></div>
         <div id="last-saved" style="font-size:11px;color:#999;white-space:nowrap"></div>
         <div class="font-ctrl" title="Tamaño de letra">
           <span>Letra</span>
@@ -1417,26 +1416,43 @@
         <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
         <button class="btn btn-primary btn-sm" onclick="saveCliente()">
           <i class="ti ti-device-floppy"></i> Guardar cambios
+        </button>
       </div>
     </div>
   </div>
-  <div id="modal-empresa" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
-    aria-labelledby="empresa-title">
-    <div class="modal" style="width:540px; max-width:100%">
-      <h3 id="empresa-title" style="margin-bottom: 1rem;">Configuración General</h3>
-      
-      <!-- Tabs del Modal -->
-      <div class="tabs no-print" style="margin-bottom: 1.25rem; display: flex; gap: 4px; background: var(--bg3); border-radius: var(--radius); padding: 5px;">
-        <button class="tab active" id="btn-modal-tab-empresa" onclick="setModalTab('empresa')" style="flex: 1; border: none; background: none; padding: 8px; cursor: pointer; border-radius: 7px;">
-          <i class="ti ti-building-store"></i> Empresa y Servicios
+
+  <!-- ════════════════════════════════════════
+     MODAL: RECIBO
+════════════════════════════════════════ -->
+  <div id="modal-recibo" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-label="Recibo de pago">
+    <div class="modal" style="width:450px; max-width: 100%;">
+      <h3 style="margin-bottom: 1.25rem;">Recibo de pago</h3>
+      <div class="receipt-preview-wrapper" role="region" aria-label="Vista previa del recibo">
+        <div class="ticket-body" id="recibo-txt"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm"
+          onclick="document.getElementById('modal-recibo').style.display='none'">Cerrar</button>
+        <button class="btn btn-sm" style="background:#25d366;color:#fff;border-color:#25d366" onclick="enviarReciboPorWhatsApp()" title="Enviar PDF por WhatsApp">
+          <i class="ti ti-brand-whatsapp"></i> Compartir WhatsApp
         </button>
-        <button class="tab" id="btn-modal-tab-db" onclick="setModalTab('db')" style="flex: 1; border: none; background: none; padding: 8px; cursor: pointer; border-radius: 7px;">
-          <i class="ti ti-database"></i> Base de Datos (Supabase)
+        <button class="btn btn-success btn-sm" onclick="imprimirRecibo()">
+          <i class="ti ti-printer"></i> Imprimir recibo
         </button>
       </div>
+    </div>
+  </div>
 
-      <!-- SECCIÓN: EMPRESA Y SERVICIOS -->
-      <div id="modal-sec-empresa" style="display:flex; flex-direction:column; gap:14px">
+  <!-- ════════════════════════════════════════
+     MODAL: CONFIGURAR EMPRESA
+════════════════════════════════════════ -->
+  <div id="modal-empresa" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-labelledby="empresa-title">
+    <div class="modal" style="width:480px; max-width:100%">
+      <h3 id="empresa-title" style="margin-bottom: 1.25rem;">Configurar Datos de la Empresa</h3>
+      
+      <div style="display:flex; flex-direction:column; gap:14px">
         <div class="field">
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Logotipo de la empresa</label>
           <div style="display: flex; gap: 16px; align-items: center; background: var(--bg2); padding: 12px; border-radius: var(--radius); border: 1.5px solid var(--border);">
@@ -1470,6 +1486,23 @@
           <input id="f-empresa-dir" placeholder="Ej. Av. De las Industrias #123, Chihuahua">
         </div>
 
+        <!-- Copias de Seguridad (JSON) -->
+        <div style="border-top: 1.5px dashed var(--border); margin-top: 15px; padding-top: 15px;">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text);"><i class="ti ti-database"></i> Copia de Seguridad Completa</div>
+          <div style="font-size: 11px; color: var(--text2); margin-bottom: 10px; line-height: 1.4;">
+            Descarga o restaura toda la base de datos (clientes, pagos, secuencias y datos de empresa) en un solo archivo JSON.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-xs" onclick="exportJSONBackup()" style="flex: 1; padding: 6px; font-size: 11px;">
+              <i class="ti ti-download"></i> Respaldar (JSON)
+            </button>
+            <button class="btn btn-xs" onclick="document.getElementById('f-import-json').click()" style="flex: 1; padding: 6px; font-size: 11px;">
+              <i class="ti ti-upload"></i> Restaurar (JSON)
+            </button>
+            <input type="file" id="f-import-json" accept=".json" style="display:none" onchange="importJSONBackup(event)">
+          </div>
+        </div>
+
         <!-- Catálogo de Servicios Predefinidos -->
         <div style="border-top: 1.5px dashed var(--border); margin-top: 15px; padding-top: 15px;">
           <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text);"><i class="ti ti-building-store"></i> Catálogo de Servicios</div>
@@ -1499,99 +1532,7 @@
           </button>
         </div>
       </div>
-
-      <!-- SECCIÓN: BASE DE DATOS -->
-      <div id="modal-sec-db" style="display:none; flex-direction:column; gap:14px">
-        <div style="font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px;">
-          <i class="ti ti-cloud-computing"></i> Configuración de Base de Datos Externa (Supabase)
-        </div>
-        <div style="font-size: 11px; color: var(--text2); line-height: 1.4;">
-          Para habilitar el almacenamiento en la nube, ingresa las credenciales de tu proyecto de Supabase. Esto permite que el sistema sea multitenant, usando una base de datos distinta para cada tenant.
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div class="field" style="min-width: 100%;">
-            <label for="f-supabase-url" style="font-size: 11px; font-weight: 600;">Supabase URL</label>
-            <input id="f-supabase-url" placeholder="https://xxxx.supabase.co" style="font-size: 12px; padding: 8px 10px;">
-          </div>
-          <div class="field" style="min-width: 100%;">
-            <label for="f-supabase-key" style="font-size: 11px; font-weight: 600;">Anon Public Key</label>
-            <input id="f-supabase-key" type="password" placeholder="Ingresa la anon public key" style="font-size: 12px; padding: 8px 10px;">
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-top: 5px;">
-          <button class="btn btn-xs" onclick="probarConexionSupabase()" style="flex: 1; padding: 6px; font-size: 11px;">
-            <i class="ti ti-refresh"></i> Probar Conexión
-          </button>
-          <button class="btn btn-xs btn-success" id="btn-migrar-supabase" onclick="migrarDatosASupabase()" style="flex: 1; padding: 6px; font-size: 11px; display: none;">
-            <i class="ti ti-cloud-upload"></i> Subir Datos Locales
-          </button>
-        </div>
-        <div id="supa-conn-status" style="font-size: 11px; font-weight: 600; padding: 8px; border-radius: 6px; display: none; line-height: 1.3;"></div>
-
-        <!-- Collapsible Details con Script SQL -->
-        <details style="margin-top: 5px; border: 1px solid var(--border); padding: 8px; border-radius: var(--radius); background: var(--bg2);">
-          <summary style="cursor: pointer; color: var(--blue); font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 4px;">
-            <i class="ti ti-terminal-2"></i> Estructura de Tablas SQL (Copiar a Supabase)
-          </summary>
-          <div style="margin-top: 8px; font-size: 11px; color: var(--text2); line-height: 1.4;">
-            Copia y ejecuta este script en el editor SQL de tu panel de Supabase:
-          </div>
-          <pre style="background: var(--surface); border: 1.5px solid var(--border); padding: 8px; border-radius: 6px; overflow-x: auto; margin-top: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; max-height: 150px; user-select: all; text-align: left; white-space: pre;">CREATE TABLE IF NOT EXISTS clientes (
-  id TEXT PRIMARY KEY,
-  cuenta TEXT,
-  nombre TEXT,
-  tel TEXT,
-  contactonombre TEXT,
-  contactocel TEXT,
-  email TEXT,
-  rfc TEXT,
-  dir TEXT,
-  freq TEXT,
-  monto NUMERIC,
-  descuento NUMERIC,
-  servicio TEXT,
-  descripcion TEXT,
-  inicio TEXT,
-  proximocobro TEXT,
-  notas TEXT,
-  estado TEXT,
-  pagos JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS config (
-  key TEXT PRIMARY KEY,
-  value JSONB,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
-ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE config ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Permitir todo a anon en clientes" ON clientes FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WITH CHECK (true);</pre>
-        </details>
-
-        <!-- Copias de Seguridad (JSON) -->
-        <div style="border-top: 1.5px dashed var(--border); margin-top: 10px; padding-top: 10px;">
-          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text);"><i class="ti ti-download"></i> Copia de Seguridad Completa</div>
-          <div style="font-size: 11px; color: var(--text2); margin-bottom: 10px; line-height: 1.4;">
-            Descarga o restaura toda la base de datos (clientes, pagos, secuencias y datos de empresa) en un solo archivo JSON.
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-xs" onclick="exportJSONBackup()" style="flex: 1; padding: 6px; font-size: 11px;">
-              <i class="ti ti-download"></i> Respaldar (JSON)
-            </button>
-            <button class="btn btn-xs" onclick="document.getElementById('f-import-json').click()" style="flex: 1; padding: 6px; font-size: 11px;">
-              <i class="ti ti-upload"></i> Restaurar (JSON)
-            </button>
-            <input type="file" id="f-import-json" accept=".json" style="display:none" onchange="importJSONBackup(event)">
-          </div>
-        </div>
-      </div>
-
+      
       <div class="modal-footer" style="margin-top: 20px;">
         <button class="btn btn-sm" onclick="closeEmpresaModal()">Cancelar</button>
         <button class="btn btn-primary btn-sm" onclick="saveEmpresaData()">
@@ -1621,6 +1562,54 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
     /* ── CONSTANTS ── */
     const FLBL = { mensual: 'Mensual', trimestral: 'Trimestral', semestral: 'Semestral', anual: 'Anual' };
     const STORAGE_KEY = 'sec_cobros_v3';
+
+    /* ── SUPABASE CONFIG ── */
+    const SUPA_URL = 'https://geyzjikhbwapoehvracc.supabase.co';
+    const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdleXpqaWtoYndhcG9laHZyYWNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTcyMjcsImV4cCI6MjA5NDc5MzIyN30.LwM8GmRxa3-OM-mt5CdyWfXhlpil9AG5z6MaD4uQvbs';
+    const SUPA_HEADERS = { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+
+    async function supaGet(tabla, params = '') {
+      try {
+        const r = await fetch(`${SUPA_URL}/rest/v1/${tabla}?${params}`, { headers: SUPA_HEADERS });
+        if (!r.ok) return null;
+        return await r.json();
+      } catch(e) { return null; }
+    }
+
+    async function supaUpsert(tabla, data) {
+      try {
+        const r = await fetch(`${SUPA_URL}/rest/v1/${tabla}`, {
+          method: 'POST',
+          headers: { ...SUPA_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(data)
+        });
+        return r.ok;
+      } catch(e) { return false; }
+    }
+
+    async function supaDelete(tabla, id) {
+      try {
+        const r = await fetch(`${SUPA_URL}/rest/v1/${tabla}?id=eq.${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: SUPA_HEADERS
+        });
+        return r.ok;
+      } catch(e) { return false; }
+    }
+
+    // Convierte cliente JS → fila Supabase (desc → descripcion)
+    function clienteToRow(c) {
+      return { ...c, descripcion: c.desc || '', pagos: c.pagos || [] };
+    }
+
+    // Convierte fila Supabase → cliente JS (descripcion → desc)
+    function rowToCliente(r) {
+      const c = { ...r };
+      c.desc = r.descripcion || '';
+      delete c.descripcion;
+      delete c.created_at;
+      return c;
+    }
 
     let clientes = [];
     let empresaData = { nombre: 'Detektor', logo: '', rfc: '', dir: '' };
@@ -1719,25 +1708,6 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       document.getElementById('f-empresa-rfc').value = empresaData.rfc || '';
       document.getElementById('f-empresa-dir').value = empresaData.dir || '';
       
-      // Cargar configuraciones de Supabase en los campos
-      document.getElementById('f-supabase-url').value = localStorage.getItem('sec_supa_url') || '';
-      document.getElementById('f-supabase-key').value = localStorage.getItem('sec_supa_key') || '';
-      
-      // Limpiar estado de conexión
-      const statusEl = document.getElementById('supa-conn-status');
-      if (statusEl) {
-        statusEl.style.display = 'none';
-        statusEl.innerHTML = '';
-      }
-      
-      // Mostrar botón de migración si hay datos en localStorage
-      const hasLocalData = !!localStorage.getItem(STORAGE_KEY);
-      const btnMigrar = document.getElementById('btn-migrar-supabase');
-      if (btnMigrar) {
-        btnMigrar.style.display = (hasLocalData && isSupaEnabled()) ? 'inline-block' : 'none';
-      }
-      
-      setModalTab('empresa');
       updateEmpresaLogoPreviewUI();
       renderServiciosConfigTable();
       
@@ -1786,309 +1756,7 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       document.getElementById('f-empresa-logo').value = '';
     }
 
-    /* ── SUPABASE EXTERNAL DATABASE INTEGRATION ── */
-    function isSupaEnabled() {
-      return !!(localStorage.getItem('sec_supa_url') && localStorage.getItem('sec_supa_key'));
-    }
-
-    function getSupaConfig() {
-      const url = localStorage.getItem('sec_supa_url') || '';
-      const key = localStorage.getItem('sec_supa_key') || '';
-      return { url, key };
-    }
-
-    function getSupaHeaders(key) {
-      return {
-        'Content-Type': 'application/json',
-        'apikey': key,
-        'Authorization': 'Bearer ' + key
-      };
-    }
-
-    async function supaGet(tabla, params = '') {
-      const { url, key } = getSupaConfig();
-      if (!url || !key) return null;
-      try {
-        const r = await fetch(`${url}/rest/v1/${tabla}?${params}`, { headers: getSupaHeaders(key) });
-        if (!r.ok) return null;
-        return await r.json();
-      } catch(e) { return null; }
-    }
-
-    async function supaUpsert(tabla, data) {
-      const { url, key } = getSupaConfig();
-      if (!url || !key) return false;
-      const onConflictCol = (tabla === 'clientes') ? 'id' : 'key';
-      try {
-        const r = await fetch(`${url}/rest/v1/${tabla}?on_conflict=${onConflictCol}`, {
-          method: 'POST',
-          headers: { ...getSupaHeaders(key), 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify(data)
-        });
-        if (!r.ok) {
-          const errText = await r.text();
-          console.error(`Error in supaUpsert for ${tabla}:`, errText);
-        }
-        return r.ok;
-      } catch(e) { 
-        console.error(`Exception in supaUpsert for ${tabla}:`, e);
-        return false; 
-      }
-    }
-
-    async function supaDelete(tabla, id) {
-      const { url, key } = getSupaConfig();
-      if (!url || !key) return false;
-      try {
-        const r = await fetch(`${url}/rest/v1/${tabla}?id=eq.${encodeURIComponent(id)}`, {
-          method: 'DELETE',
-          headers: getSupaHeaders(key)
-        });
-        return r.ok;
-      } catch(e) { return false; }
-    }
-
-    function clienteToRow(c) {
-      return {
-        id: String(c.id),
-        cuenta: c.cuenta || '',
-        nombre: c.nombre || '',
-        tel: c.tel || '',
-        contactonombre: c.contactoNombre || '',
-        contactocel: c.contactoCel || '',
-        email: c.email || '',
-        rfc: c.rfc || '',
-        dir: c.dir || '',
-        freq: c.freq || 'mensual',
-        monto: Number(c.monto) || 0,
-        descuento: Number(c.descuento) || 0,
-        servicio: c.servicio || '',
-        descripcion: c.desc || c.descripcion || '',
-        inicio: c.inicio || '',
-        proximocobro: c.proximoCobro || '',
-        notas: c.notas || '',
-        estado: c.estado || 'activo',
-        pagos: Array.isArray(c.pagos) ? c.pagos : []
-      };
-    }
-
-    function rowToCliente(r) {
-      return {
-        id: String(r.id),
-        cuenta: r.cuenta || '',
-        nombre: r.nombre || '',
-        tel: r.tel || '',
-        contactoNombre: r.contactonombre || r.contactoNombre || '',
-        contactoCel: r.contactocel || r.contactoCel || '',
-        email: r.email || '',
-        rfc: r.rfc || '',
-        dir: r.dir || '',
-        freq: r.freq || 'mensual',
-        monto: Number(r.monto) || 0,
-        descuento: Number(r.descuento) || 0,
-        servicio: r.servicio || '',
-        desc: r.descripcion || r.desc || '',
-        inicio: r.inicio || '',
-        proximoCobro: r.proximocobro || r.proximoCobro || '',
-        notas: r.notas || '',
-        estado: r.estado || 'activo',
-        pagos: Array.isArray(r.pagos) ? r.pagos : []
-      };
-    }
-
-    function updateDbIndicator(isSupa, isConnected = true) {
-      const el = document.getElementById('db-indicator');
-      if (!el) return;
-      if (isSupa) {
-        if (isConnected) {
-          el.innerHTML = `<span class="badge" onclick="loadData()" title="Conectado a la nube. Haz clic para sincronizar y recargar datos." style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;font-size:11px;padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:transform 0.1s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'"><i class="ti ti-cloud"></i> Nube (Supabase)</span>`;
-        } else {
-          el.innerHTML = `<span class="badge" onclick="loadData()" title="Error de conexión. Haz clic para reintentar conectar." style="background:#ffebee;color:#c62828;border:1px solid #ffcdd2;font-size:11px;padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:transform 0.1s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'"><i class="ti ti-cloud-off"></i> Error Conexión</span>`;
-        }
-      } else {
-        el.innerHTML = `<span class="badge" style="background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;font-size:11px;padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-device-floppy"></i> Local (Navegador)</span>`;
-      }
-    }
-
-    function setModalTab(tabName) {
-      const btnEmpresa = document.getElementById('btn-modal-tab-empresa');
-      const btnDb = document.getElementById('btn-modal-tab-db');
-      const sectionEmpresa = document.getElementById('modal-sec-empresa');
-      const sectionDb = document.getElementById('modal-sec-db');
-      
-      if (tabName === 'empresa') {
-        btnEmpresa.classList.add('active');
-        btnDb.classList.remove('active');
-        sectionEmpresa.style.display = 'flex';
-        sectionDb.style.display = 'none';
-      } else {
-        btnEmpresa.classList.remove('active');
-        btnDb.classList.add('active');
-        sectionEmpresa.style.display = 'none';
-        sectionDb.style.display = 'flex';
-      }
-    }
-
-    async function probarConexionSupabase() {
-      const statusEl = document.getElementById('supa-conn-status');
-      statusEl.style.display = 'block';
-      statusEl.style.background = 'var(--bg3)';
-      statusEl.style.color = 'var(--text)';
-      statusEl.style.borderColor = 'var(--border)';
-      statusEl.innerHTML = '<i class="ti ti-loader animate-spin"></i> Probando conexión...';
-      
-      const supaUrl = document.getElementById('f-supabase-url').value.trim();
-      const supaKey = document.getElementById('f-supabase-key').value.trim();
-      
-      if (!supaUrl || !supaKey) {
-        statusEl.style.background = '#ffebee';
-        statusEl.style.color = '#c62828';
-        statusEl.style.borderColor = '#ffcdd2';
-        statusEl.innerHTML = '❌ Debes ingresar la URL y la Anon Key.';
-        document.getElementById('btn-migrar-supabase').style.display = 'none';
-        return;
-      }
-      
-      try {
-        const headers = { 'Content-Type': 'application/json', 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey };
-        const rConfig = await fetch(`${supaUrl}/rest/v1/config?select=key`, { headers });
-        if (!rConfig.ok) throw new Error('Error al acceder a la tabla config (código ' + rConfig.status + ')');
-        
-        const rClientes = await fetch(`${supaUrl}/rest/v1/clientes?select=id&limit=1`, { headers });
-        if (!rClientes.ok) throw new Error('Error al acceder a la tabla clientes (código ' + rClientes.status + ')');
-
-        // Validar columnas requeridas contra OpenAPI de PostgREST
-        try {
-          const rOpenAPI = await fetch(`${supaUrl}/rest/v1/`, { headers });
-          if (rOpenAPI.ok) {
-            const swagger = await rOpenAPI.json();
-            if (swagger && swagger.definitions && swagger.definitions.clientes) {
-              const props = swagger.definitions.clientes.properties;
-              const requiredCols = ['id', 'cuenta', 'nombre', 'tel', 'contactonombre', 'contactocel', 'email', 'rfc', 'dir', 'freq', 'monto', 'descuento', 'servicio', 'descripcion', 'inicio', 'proximocobro', 'notas', 'estado', 'pagos'];
-              const missing = requiredCols.filter(c => !props[c]);
-              if (missing.length > 0) {
-                statusEl.style.background = '#fff3e0';
-                statusEl.style.color = '#e65100';
-                statusEl.style.borderColor = '#ffe0b2';
-                statusEl.innerHTML = `⚠️ Conectado, pero a la tabla <strong>clientes</strong> le faltan columnas: <strong>${missing.join(', ')}</strong>.<br><br>Por favor, ejecuta el script SQL de abajo para recrear la tabla con todas sus columnas.`;
-                document.getElementById('btn-migrar-supabase').style.display = 'none';
-                return;
-              }
-            }
-          }
-        } catch (eSchema) {
-          console.warn('No se pudo validar el esquema de columnas:', eSchema);
-        }
-        
-        statusEl.style.background = '#e8f5e9';
-        statusEl.style.color = '#2e7d32';
-        statusEl.style.borderColor = '#c8e6c9';
-        statusEl.innerHTML = '✅ ¡Conexión exitosa! Las tablas "clientes" y "config" están listas.';
-        
-        const rawLocal = localStorage.getItem(STORAGE_KEY);
-        if (rawLocal) {
-          document.getElementById('btn-migrar-supabase').style.display = 'inline-block';
-        } else {
-          document.getElementById('btn-migrar-supabase').style.display = 'none';
-        }
-      } catch (e) {
-        statusEl.style.background = '#ffebee';
-        statusEl.style.color = '#c62828';
-        statusEl.style.borderColor = '#ffcdd2';
-        statusEl.innerHTML = '❌ Error de conexión:<br>' + esc(e.message);
-        document.getElementById('btn-migrar-supabase').style.display = 'none';
-      }
-    }
-
-    async function migrarDatosASupabase() {
-      if (!confirm('¿Estás seguro de que deseas subir todos tus datos locales (empresa, catálogo y clientes) a Supabase?\n\nEsto sobrescribirá o combinará los registros en la nube.')) return;
-      
-      const statusEl = document.getElementById('supa-conn-status');
-      statusEl.style.display = 'block';
-      statusEl.style.background = 'var(--bg3)';
-      statusEl.style.color = 'var(--text)';
-      statusEl.innerHTML = '<i class="ti ti-loader animate-spin"></i> Migrando datos...';
-      
-      const supaUrl = document.getElementById('f-supabase-url').value.trim();
-      const supaKey = document.getElementById('f-supabase-key').value.trim();
-      const headers = { 'Content-Type': 'application/json', 'apikey': supaKey, 'Authorization': 'Bearer ' + supaKey, 'Prefer': 'resolution=merge-duplicates' };
-      
-      try {
-        localStorage.setItem('sec_supa_url', supaUrl);
-        localStorage.setItem('sec_supa_key', supaKey);
-        
-        const rawEmpresa = localStorage.getItem('sec_empresa_v3');
-        if (rawEmpresa) {
-          const empVal = JSON.parse(rawEmpresa);
-          const r1 = await fetch(`${supaUrl}/rest/v1/config?on_conflict=key`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ key: 'empresa', value: empVal })
-          });
-          if (!r1.ok) {
-            console.error('Error migrando empresa:', await r1.text());
-            throw new Error('Error al migrar datos de empresa');
-          }
-        }
-        
-        const rawSvc = localStorage.getItem('sec_servicios_v3');
-        if (rawSvc) {
-          const svcVal = JSON.parse(rawSvc);
-          const r2 = await fetch(`${supaUrl}/rest/v1/config?on_conflict=key`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ key: 'servicios', value: svcVal })
-          });
-          if (!r2.ok) {
-            console.error('Error migrando servicios:', await r2.text());
-            throw new Error('Error al migrar catálogo de servicios');
-          }
-        }
-        
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const p = JSON.parse(raw);
-          const locClientes = p.clientes || [];
-          const locSeq = p.seq || 1000;
-          
-          const r3 = await fetch(`${supaUrl}/rest/v1/config?on_conflict=key`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ key: 'seq', value: locSeq })
-          });
-          if (!r3.ok) {
-            console.error('Error migrando secuencia:', await r3.text());
-            throw new Error('Error al migrar secuencia de cuentas');
-          }
-          
-          if (locClientes.length > 0) {
-            const rows = locClientes.map(clienteToRow);
-            const r4 = await fetch(`${supaUrl}/rest/v1/clientes?on_conflict=id`, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(rows)
-            });
-            if (!r4.ok) {
-              console.error('Error migrando clientes:', await r4.text());
-              throw new Error('Error al migrar clientes');
-            }
-          }
-        }
-        
-        statusEl.style.background = '#e8f5e9';
-        statusEl.style.color = '#2e7d32';
-        statusEl.innerHTML = '✅ ¡Migración completada con éxito! Todos los datos locales se han copiado a Supabase.';
-        document.getElementById('btn-migrar-supabase').style.display = 'none';
-        
-        await loadData();
-      } catch (e) {
-        statusEl.style.background = '#ffebee';
-        statusEl.style.color = '#c62828';
-        statusEl.innerHTML = '❌ Error durante la migración:<br>' + esc(e.message);
-      }
-    }
-
-    async function saveEmpresaData() {
+    function saveEmpresaData() {
       const nombre = document.getElementById('f-empresa-nombre').value.trim();
       const rfc = document.getElementById('f-empresa-rfc').value.trim();
       const dir = document.getElementById('f-empresa-dir').value.trim();
@@ -2102,143 +1770,104 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       empresaData.rfc = rfc;
       empresaData.dir = dir;
       
-      const supaUrl = document.getElementById('f-supabase-url').value.trim();
-      const supaKey = document.getElementById('f-supabase-key').value.trim();
-      
-      const oldUrl = localStorage.getItem('sec_supa_url') || '';
-      const oldKey = localStorage.getItem('sec_supa_key') || '';
-      let supaChanged = (supaUrl !== oldUrl || supaKey !== oldKey);
-      
-      if (supaUrl) {
-        localStorage.setItem('sec_supa_url', supaUrl);
-      } else {
-        localStorage.removeItem('sec_supa_url');
-      }
-      
-      if (supaKey) {
-        localStorage.setItem('sec_supa_key', supaKey);
-      } else {
-        localStorage.removeItem('sec_supa_key');
-      }
-      
       try {
-        if (isSupaEnabled()) {
-          const ok = await supaUpsert('config', { key: 'empresa', value: empresaData });
-          if (!ok) {
-            localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
-            showToast('⚠ Guardado local (error nube)');
-          } else {
-            showToast('✓ Datos de empresa guardados en nube');
-          }
-        } else {
-          localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
-          showToast('✓ Datos de empresa guardados');
-        }
-        
+        const ok = await supaUpsert('config', { key: 'empresa', value: empresaData });
+        if (!ok) localStorage.setItem('sec_empresa_v3', JSON.stringify(empresaData));
+        showToast('✓ Datos de empresa guardados');
         closeEmpresaModal();
         renderHeaderBrand();
-        
-        if (supaChanged) {
-          showToast('✓ Base de datos actualizada, cargando...');
-          await loadData();
-        }
       } catch (e) {
         showToast('⚠ Error al guardar');
       }
     }
 
-    /* ── PERSISTENCE ── */
+    /* ── PERSISTENCE (Supabase + localStorage fallback) ── */
     async function loadData() {
-      const indEl = document.getElementById('db-indicator');
-      if (indEl) {
-        const icon = indEl.querySelector('i');
-        if (icon) icon.className = 'ti ti-refresh animate-spin';
-      }
+      // Fuente de datos: Supabase primero, localStorage como respaldo
       try {
         const fs = localStorage.getItem('sec_fontSize');
         if (fs) { fontSize = parseInt(fs); changeFontSize(0) }
       } catch(e) {}
 
-      let dataLoaded = false;
-
-      if (isSupaEnabled()) {
-        updateDbIndicator(true);
-        const cfgRows = await supaGet('config', 'select=key,value');
-        if (cfgRows) {
-          const emp = cfgRows.find(r => r.key === 'empresa');
-          if (emp) empresaData = emp.value;
-          const svc = cfgRows.find(r => r.key === 'servicios');
-          if (svc) serviciosPredefinidos = svc.value;
-          const seq = cfgRows.find(r => r.key === 'seq');
-          if (seq) cuentaSeq = seq.value;
-          
-          dataLoaded = true;
-        }
-        
-        const rows = await supaGet('clientes', 'select=*&order=nombre.asc');
-        if (rows) {
-          clientes = rows.map(rowToCliente);
-          const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-          setTimeout(() => { const el = document.getElementById('last-saved'); if (el) el.textContent = 'Guardado ' + ts }, 100);
-          dataLoaded = true;
-        } else {
-          updateDbIndicator(true, false);
-        }
-      }
-
-      if (!dataLoaded) {
-        updateDbIndicator(false);
+      // Cargar empresa y servicios desde Supabase
+      const cfgRows = await supaGet('config', 'select=key,value');
+      if (cfgRows && cfgRows.length > 0) {
+        const emp = cfgRows.find(r => r.key === 'empresa');
+        if (emp) empresaData = emp.value;
+        const svc = cfgRows.find(r => r.key === 'servicios');
+        if (svc) { serviciosPredefinidos = svc.value; }
+        const seq = cfgRows.find(r => r.key === 'seq');
+        if (seq) cuentaSeq = seq.value;
+      } else {
+        // Respaldo: localStorage
         try {
           const rawEmpresa = localStorage.getItem('sec_empresa_v3');
           if (rawEmpresa) empresaData = JSON.parse(rawEmpresa);
           const rawSvc = localStorage.getItem('sec_servicios_v3');
           if (rawSvc) serviciosPredefinidos = JSON.parse(rawSvc);
           const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const p = JSON.parse(raw);
-            clientes = p.clientes || [];
-            cuentaSeq = p.seq || 1000;
-            if (p.savedAt) {
-              const ts = new Date(p.savedAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-              setTimeout(() => { const el = document.getElementById('last-saved'); if (el) el.textContent = 'Guardado ' + ts }, 100);
-            }
-          }
-        } catch(e) {
-          clientes = [];
-        }
+          if (raw) { const p = JSON.parse(raw); cuentaSeq = p.seq || 1000; }
+        } catch(e) {}
+      }
+
+      // Cargar clientes desde Supabase
+      const rows = await supaGet('clientes', 'select=*&order=nombre.asc');
+      if (rows && rows.length > 0) {
+        clientes = rows.map(rowToCliente);
+        const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        setTimeout(() => { const el = document.getElementById('last-saved'); if (el) el.textContent = 'Cargado ' + ts }, 100);
+      } else {
+        // Respaldo: localStorage
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) { const p = JSON.parse(raw); clientes = p.clientes || []; cuentaSeq = p.seq || 1000; }
+        } catch(e) { clientes = []; }
       }
 
       renderHeaderBrand();
-      initServiciosCatalog();
+      renderServiciosSelect();
+      renderServiciosConfigTable();
       renderDash(); renderClientes(); renderPend(); renderCal();
     }
 
     async function saveData() {
+      // Guardar todos los clientes en Supabase
       try {
-        if (isSupaEnabled()) {
-          const rows = clientes.map(clienteToRow);
-          const ok = await supaUpsert('clientes', rows);
-          await supaUpsert('config', { key: 'seq', value: cuentaSeq });
-          if (ok) {
-            showToast('✓ Guardado en Supabase');
-            updateDbIndicator(true, true);
-          } else {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-            showToast('⚠ Guardado local (error nube)');
-            updateDbIndicator(true, false);
-          }
+        const rows = clientes.map(clienteToRow);
+        const ok = await supaUpsert('clientes', rows);
+        // Guardar seq en config
+        await supaUpsert('config', { key: 'seq', value: cuentaSeq });
+        if (ok) {
+          showToast('✓ Datos guardados en la nube');
         } else {
+          // Respaldo local si falla Supabase
           localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-          showToast('✓ Datos guardados');
-          updateDbIndicator(false);
+          showToast('⚠ Sin conexión — guardado local');
         }
         const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
         const el = document.getElementById('last-saved');
         if (el) el.textContent = 'Guardado ' + ts;
-      } catch (e) {
+      } catch(e) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-        showToast('⚠ Guardado local (error)');
+        showToast('⚠ Sin conexión — guardado local');
       }
+    }
+
+    async function saveClienteIndividual(clienteData) {
+      // Guardar o actualizar un solo cliente (más eficiente)
+      const row = clienteToRow(clienteData);
+      const ok = await supaUpsert('clientes', [row]);
+      if (!ok) {
+        // Respaldo local
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
+      }
+      const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      const el = document.getElementById('last-saved');
+      if (el) el.textContent = 'Guardado ' + ts;
+    }
+
+    async function deleteClienteRemoto(id) {
+      await supaDelete('clientes', id);
     }
 
     function nextCuenta() { cuentaSeq++; return 'SEC-' + String(cuentaSeq).padStart(4, '0') }
@@ -2366,45 +1995,25 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
     /* ── CATÁLOGO DE SERVICIOS PREDEFINIDOS ── */
     let serviciosPredefinidos = [];
     
-    async function initServiciosCatalog() {
+    function initServiciosCatalog() {
+      // Los servicios ya se cargan en loadData() desde Supabase.
+      // Si no hay ninguno definido aún, se usan los valores por defecto.
       if (!serviciosPredefinidos || serviciosPredefinidos.length === 0) {
-        if (!isSupaEnabled()) {
-          const raw = localStorage.getItem('sec_servicios_v3');
-          if (raw) {
-            serviciosPredefinidos = JSON.parse(raw);
-            renderServiciosSelect();
-            renderServiciosConfigTable();
-            return;
-          }
-        }
         serviciosPredefinidos = [
           { nombre: 'Monitoreo de Alarma Residencial', desc: '', freq: 'mensual', monto: 200 },
           { nombre: 'Monitoreo de Alarma Residencial', desc: '', freq: 'semestral', monto: 550 },
           { nombre: 'Monitoreo de Alarma Residencial', desc: 'Prestamo de comunicador', freq: 'mensual', monto: 350 },
           { nombre: 'Monitoreo de Alarma Residencial', desc: ' Panel Neo', freq: 'mensual', monto: 300 }
         ];
-        await saveServiciosCatalog();
+        saveServiciosCatalog();
       }
       renderServiciosSelect();
       renderServiciosConfigTable();
     }
     
-    async function saveServiciosCatalog() {
-      try {
-        if (isSupaEnabled()) {
-          const ok = await supaUpsert('config', { key: 'servicios', value: serviciosPredefinidos });
-          if (!ok) {
-            localStorage.setItem('sec_servicios_v3', JSON.stringify(serviciosPredefinidos));
-            showToast('⚠ Guardado catálogo local (error nube)');
-          } else {
-            showToast('✓ Catálogo actualizado en la nube');
-          }
-        } else {
-          localStorage.setItem('sec_servicios_v3', JSON.stringify(serviciosPredefinidos));
-        }
-      } catch(e) {
-        localStorage.setItem('sec_servicios_v3', JSON.stringify(serviciosPredefinidos));
-      }
+    function saveServiciosCatalog() {
+      supaUpsert('config', { key: 'servicios', value: serviciosPredefinidos });
+      localStorage.setItem('sec_servicios_v3', JSON.stringify(serviciosPredefinidos));
     }
     
     function renderServiciosSelect() {
@@ -2437,7 +2046,7 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       }).join('');
     }
     
-    async function agregarServicioCatalogo() {
+    function agregarServicioCatalogo() {
       const nombre = document.getElementById('fc-serv-nombre').value.trim();
       const desc = document.getElementById('fc-serv-desc').value.trim();
       const freq = document.getElementById('fc-serv-freq').value;
@@ -2447,7 +2056,7 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       if (!monto || Number(monto) <= 0) { showToast('⚠ El monto debe ser mayor a 0'); return; }
       
       serviciosPredefinidos.push({ nombre, desc, freq, monto: Number(monto) });
-      await saveServiciosCatalog();
+      saveServiciosCatalog();
       renderServiciosSelect();
       renderServiciosConfigTable();
       
@@ -2457,9 +2066,9 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       showToast('✓ Servicio agregado al catálogo');
     }
     
-    async function eliminarServicioCatalogo(idx) {
+    function eliminarServicioCatalogo(idx) {
       serviciosPredefinidos.splice(idx, 1);
-      await saveServiciosCatalog();
+      saveServiciosCatalog();
       renderServiciosSelect();
       renderServiciosConfigTable();
       showToast('✓ Servicio eliminado del catálogo');
@@ -2520,8 +2129,9 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
           if (backup.empresaData) empresaData = backup.empresaData;
           if (backup.serviciosPredefinidos) serviciosPredefinidos = backup.serviciosPredefinidos;
           
-          saveData();
-          saveServiciosCatalog();
+          await saveData();
+          await supaUpsert('config', { key: 'servicios', value: serviciosPredefinidos });
+          await supaUpsert('config', { key: 'empresa', value: empresaData });
           
           document.getElementById('f-empresa-nombre').value = empresaData.nombre || '';
           document.getElementById('f-empresa-rfc').value = empresaData.rfc || '';
@@ -3105,32 +2715,6 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       saveClienteData(nombre, monto, prox, cuenta);
     }
 
-    async function saveClienteIndividual(clienteData) {
-      try {
-        if (isSupaEnabled()) {
-          const row = clienteToRow(clienteData);
-          const ok = await supaUpsert('clientes', [row]);
-          await supaUpsert('config', { key: 'seq', value: cuentaSeq });
-          if (ok) {
-            showToast('✓ Cliente guardado en la nube');
-            updateDbIndicator(true, true);
-          } else {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-            showToast('⚠ Guardado local (error nube)');
-            updateDbIndicator(true, false);
-          }
-          const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-          const el = document.getElementById('last-saved');
-          if (el) el.textContent = 'Guardado ' + ts;
-        } else {
-          await saveData();
-        }
-      } catch (e) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-        showToast('⚠ Guardado local (error)');
-      }
-    }
-
     async function saveClienteData(nombre, monto, prox, cuenta) {
       const data = {
         id: editId || (Date.now().toString()),
@@ -3156,10 +2740,9 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
 
       if (editId) { const i = clientes.findIndex(c => c.id === editId); clientes[i] = data }
       else { clientes.push(data) }
-      
-      closeModal();
-      await saveClienteIndividual(data);
+      await saveClienteIndividual(data); closeModal();
       renderDash(); renderClientes(); renderPend(); renderCal();
+      showToast('✓ Cliente guardado');
     }
 
     async function deleteFromModal() {
@@ -3167,28 +2750,11 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       const c = clientes.find(x => x.id === editId);
       const ok = await showConfirm('Eliminar cliente', `¿Eliminar a ${c.nombre} (${c.cuenta})? Esta acción no se puede deshacer.`);
       if (!ok) return;
-      
+      await deleteClienteRemoto(editId);
       clientes = clientes.filter(x => x.id !== editId);
       closeModal();
-      
-      if (isSupaEnabled()) {
-        const okDel = await supaDelete('clientes', editId);
-        if (okDel) {
-          showToast('✓ Cliente eliminado de la nube');
-          updateDbIndicator(true, true);
-        } else {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({ clientes, seq: cuentaSeq, savedAt: new Date().toISOString() }));
-          showToast('⚠ Eliminado local (error nube)');
-          updateDbIndicator(true, false);
-        }
-        const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-        const el = document.getElementById('last-saved');
-        if (el) el.textContent = 'Guardado ' + ts;
-      } else {
-        await saveData();
-      }
-      
       renderDash(); renderClientes(); renderPend(); renderCal();
+      showToast('✓ Cliente eliminado');
     }
 
     /* ── REGISTRAR PAGO ── */
@@ -3207,9 +2773,7 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
       const numRec = 'REC-' + String(Date.now()).slice(-6);
       c.pagos.push({ fecha: fechaPago, monto: mf, recibo: numRec, periodoDesde: periodo.desde, periodoHasta: periodo.hasta });
       c.proximoCobro = siguienteCobro;
-      
-      await saveClienteIndividual(c);
-      renderDash(); renderPend(); renderCal();
+      await saveClienteIndividual(c); renderDash(); renderPend(); renderCal();
       verRecibo(id, fechaPago);
     }
 
@@ -3798,7 +3362,7 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
           }
         }
         saveData();
-        showToast(`✓ ${imp} importados${omitidos ? `, ${omitidos} omitidos` : ''}`);
+        showToast(`✓ ${imp} importados${omitidos ? `, ${omitidos} omitidos` : ''} — guardando en la nube...`);
         renderDash(); renderClientes(); renderPend(); renderCal();
       };
       r.readAsText(file, 'UTF-8');
@@ -3818,8 +3382,8 @@ CREATE POLICY "Permitir todo a anon en config" ON config FOR ALL USING (true) WI
     });
 
     /* ── INIT ── */
+    loadData(); // loadData es async y ya llama renderDash, renderClientes, renderPend, renderCal, renderServiciosSelect, renderServiciosConfigTable
     initIngresosDates();
-    loadData();
   </script>
 </body>
 
