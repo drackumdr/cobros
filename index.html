@@ -1768,6 +1768,7 @@
 
     function nextCuenta() { cuentaSeq++; return 'SEC-' + String(cuentaSeq).padStart(4, '0') }
 
+ 
     /* ── DEMO DATA ── */
     function seedDemo() {
       const t = new Date();
@@ -1775,15 +1776,15 @@
       const ago = n => { const d = new Date(t); d.setDate(d.getDate() - n); return fmt(d) };
       const fwd = n => { const d = new Date(t); d.setDate(d.getDate() + n); return fmt(d) };
       clientes = [
-        { id: '1', cuenta: 'SEC-1001', nombre: 'Carlos Mendoza', tel: '614-123-4567', email: 'carlos@gmail.com', rfc: '', dir: 'Col. Centro, Chihuahua', freq: 'mensual', monto: 200, descuento: 0, inicio: ago(180), proximoCobro: ago(5), servicio: 'Alarma', desc: 'Panel DSC 1832', notas: 'Paga en efectivo', estado: 'activo', pagos: [] },
-        { id: '2', cuenta: 'SEC-1002', nombre: 'Ana Flores', tel: '614-234-5678', email: '', rfc: 'FOAA850212', dir: 'Fracc. Las Quintas', freq: 'mensual', monto: 350, descuento: 0, inicio: ago(90), proximoCobro: fwd(2), servicio: 'CCTV + Alarma', desc: '4 cámaras Hikvision', notas: '', estado: 'activo', pagos: [{ fecha: ago(30), monto: 350 }] },
-        { id: '3', cuenta: 'SEC-1003', nombre: 'Roberto Solis', tel: '614-345-6789', email: 'rsolis@empresa.com', rfc: '', dir: 'Col. San Felipe', freq: 'trimestral', monto: 450, descuento: 10, inicio: ago(270), proximoCobro: fwd(6), servicio: 'GPS Vehículo', desc: '2 unidades', notas: '10% descuento flotilla', estado: 'activo', pagos: [{ fecha: ago(91), monto: 450 }] },
-        { id: '4', cuenta: 'SEC-1004', nombre: 'María Gutiérrez', tel: '614-456-7890', email: '', rfc: '', dir: 'Col. Mirador', freq: 'mensual', monto: 150, descuento: 0, inicio: ago(365), proximoCobro: ago(1), servicio: 'Alarma', desc: 'Panel Paradox', notas: 'Cliente antiguo', estado: 'activo', pagos: [] },
-        { id: '5', cuenta: 'SEC-1005', nombre: 'Luis Ramírez', tel: '614-567-8901', email: '', rfc: 'RALL770901', dir: 'Fracc. Praderas del Sol', freq: 'semestral', monto: 900, descuento: 5, inicio: ago(60), proximoCobro: fwd(14), servicio: 'CCTV', desc: '8 cámaras + NVR', notas: 'Descuento 5%', estado: 'activo', pagos: [] },
+        { id: '1', cuenta: 'SEC-1001', nombre: 'Carlos Mendoza', tel: '614-123-4567', email: 'carlos@gmail.com', rfc: '', dir: 'Col. Centro, Chihuahua', freq: 'mensual', monto: 200, descuento: 0, inicio: ago(180), proximoCobro: ago(5), servicio: 'Monitoreo de Alarma Residencial', desc: 'Panel DSC 1832', notas: 'Paga en efectivo', estado: 'activo', pagos: [] },
+        { id: '2', cuenta: 'SEC-1002', nombre: 'Ana Flores', tel: '614-234-5678', email: '', rfc: 'FOAA850212', dir: 'Fracc. Las Quintas', freq: 'mensual', monto: 350, descuento: 0, inicio: ago(90), proximoCobro: fwd(2), servicio: 'Monitoreo de Alarma Residencial', desc: 'Panel 585', notas: '', estado: 'activo', pagos: [{ fecha: ago(30), monto: 350 }] },
+        { id: '3', cuenta: 'SEC-1003', nombre: 'Roberto Solis', tel: '614-345-6789', email: 'rsolis@empresa.com', rfc: '', dir: 'Col. San Felipe', freq: 'trimestral', monto: 450, descuento: 10, inicio: ago(270), proximoCobro: fwd(6), servicio: 'Monitoreo de Alarma Residencial', desc: 'Casa de la abuelita', notas: '10% descuento flotilla', estado: 'activo', pagos: [{ fecha: ago(91), monto: 450 }] },
+        { id: '4', cuenta: 'SEC-1004', nombre: 'Empresa XYZ', tel: '614-456-7890', email: 'quien@empresa.com', rfc: 'XYZ123456', dir: 'Fracc. Las Palmas', freq: 'anual', monto: 1000, descuento: 15, inicio: ago(365), proximoCobro: fwd(12), servicio: 'Monitoreo de Alarma Residencial', desc: 'Sistema completo', notas: '15% descuento anual', estado: 'activo', pagos: [{ fecha: ago(30), monto: 1000 }] }
       ];
       cuentaSeq = 1005;
       saveData();
     }
+    
 
     /* ── UTILS ── */
     function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
@@ -1912,10 +1913,10 @@
         serviciosPredefinidos = JSON.parse(raw);
       } else {
         serviciosPredefinidos = [
-          { nombre: 'Alarma Residencial', desc: 'Panel DSC 1832', freq: 'mensual', monto: 200 },
-          { nombre: 'CCTV + Alarma', desc: '4 cámaras Hikvision', freq: 'mensual', monto: 350 },
-          { nombre: 'GPS Vehículo', desc: 'Monitoreo satelital', freq: 'mensual', monto: 150 },
-          { nombre: 'CCTV', desc: '8 cámaras + NVR', freq: 'mensual', monto: 300 }
+          { nombre: 'Monitoreo de Alarma Residencial', desc: '', freq: 'mensual', monto: 200 },
+          { nombre: 'Monitoreo de Alarma Residencial', desc: '', freq: 'semestral', monto: 550 },
+          { nombre: 'Monitoreo de Alarma Residencial', desc: 'Prestamo de comunicador', freq: 'mensual', monto: 350 },
+          { nombre: 'Monitoreo de Alarma Residencial', desc: ' Panel Neo', freq: 'mensual', monto: 300 }
         ];
         saveServiciosCatalog();
       }
