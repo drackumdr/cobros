@@ -1420,6 +1420,30 @@
       </div>
     </div>
   </div>
+
+  <!-- ════════════════════════════════════════
+     MODAL: RECIBO
+  ════════════════════════════════════════ -->
+  <div id="modal-recibo" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
+    aria-label="Recibo de pago">
+    <div class="modal" style="width:450px; max-width: 100%;">
+      <h3 style="margin-bottom: 1.25rem;">Recibo de pago</h3>
+      <div class="receipt-preview-wrapper" role="region" aria-label="Vista previa del recibo">
+        <div class="ticket-body" id="recibo-txt"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm"
+          onclick="document.getElementById('modal-recibo').style.display='none'">Cerrar</button>
+        <button class="btn btn-sm" style="background:#25d366;color:#fff;border-color:#25d366" onclick="enviarReciboPorWhatsApp()" title="Enviar PDF por WhatsApp">
+          <i class="ti ti-brand-whatsapp"></i> Compartir WhatsApp
+        </button>
+        <button class="btn btn-success btn-sm" onclick="imprimirRecibo()">
+          <i class="ti ti-printer"></i> Imprimir recibo
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-empresa" style="display:none" class="modal-bg" role="dialog" aria-modal="true"
     aria-labelledby="empresa-title">
     <div class="modal" style="width:540px; max-width:100%">
